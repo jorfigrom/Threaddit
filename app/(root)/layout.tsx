@@ -23,7 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <body>
             <Topbar />
             
-              <main> 
+              <main className="flex flex-row"> 
 
                 <LeftSidebar />
 
