@@ -30,7 +30,7 @@ function Bottombar() {
                 height={24}
               />
               <p className="text-subtle-medium text-light-1 max-sm:hidden">
-                {link.label.split(/\s+/)[0]} // Operador para quedarnos con la primera palabra del link
+                {link.label.split(/\s+/)[0]} 
                 </p>
             </Link>
           )

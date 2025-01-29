@@ -164,4 +164,7 @@
   :root {
     --radius: 0.5rem;
   }
+  body {
+    @apply font-sans bg-dark-1 text-light-1;
+  }
 }
