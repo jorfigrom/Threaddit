@@ -2,8 +2,8 @@
 const nextConfig = {
   experimental: {
     // Si realmente necesitas usar estas opciones experimentales, verifica si están disponibles en la versión que estás utilizando.
-    serverActions: true, 
-    serverComponentsExternalPackages: ["mongoose"], 
+    //serverActions: true, 
+    //serverComponentsExternalPackages: ["mongoose"], 
   },
   images: {
     remotePatterns: [

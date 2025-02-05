@@ -21,9 +21,10 @@ import { isBase64Image } from "@/lib/utils";
 import { userValidation } from "@/lib/validations/user";
 import { ThreadValidation } from "@/lib/validations/thread";
 import { updateUser } from "@/lib/actions/user.actions";
-import { useRouter } from "next/router";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { createThread } from "@/lib/actions/thread.actions";
+import { z } from "zod";
 
 interface Props {
     user: {
@@ -39,8 +40,8 @@ interface Props {
 
 function PostThread({ userId }: { userId: string }) {
 
-    //const router = useRouter();
-    //const pathname = usePathname();
+    const router = useRouter();
+    const pathname = usePathname();
 
     const form = useForm({
         resolver: zodResolver(ThreadValidation),
@@ -50,14 +51,21 @@ function PostThread({ userId }: { userId: string }) {
         }
     });
 
-    const onSubmit = () => {
-
-    }
+    const onSubmit = async (values: z.infer<typeof ThreadValidation>) => {
+        await createThread({
+          text: values.thread,
+          author: userId,
+          communityId: null,
+          path: pathname,
+        });
+    
+        router.push("/");
+      };
 
     return (
         <Form {...form}>
             <form
-                className='flex flex-col justify-start gap-10'
+                className='mt-10 flex flex-col justify-start gap-10'
                 onSubmit={form.handleSubmit(onSubmit)}
             >
 
@@ -71,7 +79,7 @@ function PostThread({ userId }: { userId: string }) {
                             </FormLabel>
                             <FormControl className="no-focus border border-dark-4 bg-dark-3 text-light-1">
                                 <Textarea
-                                    rows={150}
+                                    rows={15}
                                     {...field}
                                 />
                             </FormControl>
@@ -79,6 +87,10 @@ function PostThread({ userId }: { userId: string }) {
                         </FormItem>
                     )}
                 />
+
+                <Button type='submit' className='bg-primary-500'>
+                    Publicar thread
+                </Button>
 
             </form>
         </Form>
