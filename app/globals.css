@@ -167,7 +167,7 @@
 
 .simple-linear {
   background: linear-gradient(rgba(43, 43, 250, 0.521), rgba(128, 0, 128, 0.568));
-}
+  }
 
 @layer base {
   :root {
