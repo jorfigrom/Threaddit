@@ -166,14 +166,18 @@
 
 
 .simple-linear {
-  background: linear-gradient(rgba(43, 43, 250, 0.521), rgba(128, 0, 128, 0.568));
-  }
+  background: url('/fondo.jpg') no-repeat center center;
+  background-size: cover;
+}
+
+  
+  
 
 @layer base {
   :root {
     --radius: 0.5rem;
   }
   body {
-    @apply font-sans bg-dark-1 text-light-1;
+    @apply font-sans bg-dark-2 text-light-1;
   }
 }
