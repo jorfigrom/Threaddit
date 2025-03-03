@@ -152,18 +152,18 @@ export async function getActivity(userId: string) {
   try {
     connectToDB();
 
-    // Find all threads created by the user
+    // Buscar todos los hilos creados por el usuario.
     const userThreads = await Thread.find({ author: userId });
 
-    // Collect all the child thread ids (replies) from the 'children' field of each user thread
+    // Recopilar todos los IDs de los hilos secundarios (respuestas) desde el campo 'children' de cada hilo del usuario.
     const childThreadIds = userThreads.reduce((acc, userThread) => {
       return acc.concat(userThread.children);
     }, []);
 
-    // Find and return the child threads (replies) excluding the ones created by the same user
+    // Buscar y devolver los hilos secundarios (respuestas), excluyendo los creados por el mismo usuario.
     const replies = await Thread.find({
       _id: { $in: childThreadIds },
-      author: { $ne: userId }, // Exclude threads authored by the same user
+      author: { $ne: userId }, // Excluir los hilos creados por el mismo usuario.
     }).populate({
       path: "author",
       model: User,
@@ -172,7 +172,7 @@ export async function getActivity(userId: string) {
 
     return replies;
   } catch (error) {
-    console.error("Error fetching replies: ", error);
+    console.error("Error al obtener respuestas: ", error);
     throw error;
   }
 }
