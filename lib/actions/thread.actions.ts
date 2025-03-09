@@ -4,6 +4,7 @@ import Thread from "../models/thread.model";
 import User from "../models/user.model";
 import { connectToDB } from "../mongoose";
 
+
 interface Params {
   text: string;
   author: string;
@@ -24,7 +25,7 @@ export async function createThread({ text, author, communityId, path }: Params) 
 
     //Update user model
     await User.findByIdAndUpdate(author, {
-      $push: { threads: createdThread._id }
+      $push: { threads: createdThread._id },
     });
 
     revalidatePath(path);
@@ -66,8 +67,6 @@ export async function fetchPosts(pageNumber = 1, pageSize = 20) {
 
 export async function fetchThreadById(id: string) {
   connectToDB();
-
-
   //comentarios de los comentarios
   try {
     const thread = await Thread.findById(id)
@@ -138,5 +137,49 @@ export async function addCommentToThread(
   } catch (err) {
     console.error("Error while adding comment:", err);
     throw new Error("Unable to add comment");
+  }
+}
+
+async function fetchAllChildThreads(threadId: string): Promise<any[]> {
+  const childThreads = await Thread.find({ parentId: threadId });
+
+  const descendantThreads = [];
+  for (const childThread of childThreads) {
+    const descendants = await fetchAllChildThreads(childThread._id);
+    descendantThreads.push(childThread, ...descendants);
+  }
+
+  return descendantThreads;
+}
+
+/*
+  Función para buscar todos los hilos de un usuario
+*/
+
+export async function fetchUserReplies(userId: string) {
+  try {
+    await connectToDB();
+
+    // Busca todos los threads del usuario que tengan un parentId (respuestas)
+    const replies = await Thread.find({ author: userId, parentId: { $ne: null } })
+      .populate({
+        path: "author",
+        model: User,
+        select: "name image id", // Selecciona los campos "name", "image" e "id" del modelo "User"
+      })
+      .populate({
+        path: "parentId",
+        model: Thread,
+        populate: {
+          path: "author",
+          model: User,
+          select: "name image id", // Selecciona los campos "name", "image" e "id" del modelo "User"
+        },
+      });
+
+    return replies;
+  } catch (error: any) {
+    console.error("Error fetching user replies:", error);
+    throw new Error(`Failed to fetch user replies: ${error.message}`);
   }
 }
