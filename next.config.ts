@@ -23,7 +23,13 @@ const nextConfig = {
         protocol: "https",
         hostname: "placehold.co",
       },
+      {
+        protocol: "https",
+        hostname: "utfs.io",
+      },
     ],
+    domains: ["utfs.io", "d1frb0m7uh.ufs.sh"], // Agrega todos los dominios que uses
+ 
   },
   typescript: {
     ignoreBuildErrors: true,
