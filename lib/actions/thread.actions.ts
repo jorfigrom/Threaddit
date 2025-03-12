@@ -4,7 +4,6 @@ import Thread from "../models/thread.model";
 import User from "../models/user.model";
 import { connectToDB } from "../mongoose";
 
-
 interface Params {
   text: string;
   author: string;
@@ -13,7 +12,6 @@ interface Params {
 }
 
 export async function createThread({ text, author, communityId, path }: Params) {
-
   try {
     connectToDB();
 
@@ -23,7 +21,7 @@ export async function createThread({ text, author, communityId, path }: Params) 
       community: null,
     });
 
-    //Update user model
+    // Actualiza el modelo de usuario
     await User.findByIdAndUpdate(author, {
       $push: { threads: createdThread._id },
     });
@@ -32,17 +30,15 @@ export async function createThread({ text, author, communityId, path }: Params) 
   } catch (error: any) {
     throw new Error(`Error al crear el thread: ${error.message}`);
   }
-
-
 }
 
 export async function fetchPosts(pageNumber = 1, pageSize = 20) {
   connectToDB();
 
-  // Calculate the number of posts to skip based on the page number and page size.
+  // Calcula la cantidad de posts a omitir según la paginación
   const skipAmount = (pageNumber - 1) * pageSize;
 
-  // Create a query to fetch the posts that have no parent (top-level threads) (a thread that is not a comment/reply).
+  // Obtiene los posts principales (sin padre)
   const postsQuery = Thread.find({ parentId: { $in: [null, undefined] } })
     .sort({ createdAt: "desc" })
     .skip(skipAmount)
@@ -50,16 +46,14 @@ export async function fetchPosts(pageNumber = 1, pageSize = 20) {
     .populate({
       path: "author",
       model: User,
-    })
+    });
 
-
-  // Count the total number of top-level posts (threads) i.e., threads that are not comments.
+  // Cuenta el total de posts principales
   const totalPostsCount = await Thread.countDocuments({
     parentId: { $in: [null, undefined] },
-  }); // Get the total count of posts
+  });
 
   const posts = await postsQuery.exec();
-
   const isNext = totalPostsCount > skipAmount + posts.length;
 
   return { posts, isNext };
@@ -67,38 +61,37 @@ export async function fetchPosts(pageNumber = 1, pageSize = 20) {
 
 export async function fetchThreadById(id: string) {
   connectToDB();
-  //comentarios de los comentarios
   try {
     const thread = await Thread.findById(id)
       .populate({
         path: "author",
         model: User,
-        select: "_id id name image"
+        select: "_id id name image",
       })
       .populate({
-        path: 'children',
+        path: "children",
         populate: [
           {
-            path: 'author',
+            path: "author",
             model: User,
-            select: '_id id name image'
+            select: "_id id name image",
           },
           {
-            path: 'children',
+            path: "children",
             model: Thread,
             populate: {
-              path: 'author',
+              path: "author",
               model: User,
-              select: '_id id name image'
-            }
-          }
-        ]
-      }).exec();
+              select: "_id id name image",
+            },
+          },
+        ],
+      })
+      .exec();
     return thread;
   } catch (error: any) {
     throw new Error(`Error al buscar el thread: ${error.message}`);
   }
-
 }
 
 export async function addCommentToThread(
@@ -114,29 +107,27 @@ export async function addCommentToThread(
     const originalThread = await Thread.findById(threadId);
 
     if (!originalThread) {
-      throw new Error("Thread not found");
+      throw new Error("Thread no encontrado");
     }
 
-    // crea el comentario
+    // Crea el comentario
     const commentThread = new Thread({
       text: commentText,
       author: userId,
-      parentId: threadId, // establece el padre del hilo
+      parentId: threadId,
     });
 
-    // guarda el comentario
+    // Guarda el comentario
     const savedCommentThread = await commentThread.save();
 
-    // añade elñ comentario como hijo del hilo
+    // Agrega el comentario como hijo del hilo
     originalThread.children.push(savedCommentThread._id);
-
-    // guarda el hilo original con el nuevo comentario
     await originalThread.save();
 
     revalidatePath(path);
   } catch (err) {
-    console.error("Error while adding comment:", err);
-    throw new Error("Unable to add comment");
+    console.error("Error al agregar comentario:", err);
+    throw new Error("No se pudo agregar el comentario");
   }
 }
 
@@ -153,19 +144,18 @@ async function fetchAllChildThreads(threadId: string): Promise<any[]> {
 }
 
 /*
-  Función para buscar todos los hilos de un usuario
+  Obtiene todas las respuestas de un usuario
 */
-
 export async function fetchUserReplies(userId: string) {
   try {
     await connectToDB();
 
-    // Busca todos los threads del usuario que tengan un parentId (respuestas)
+    // Busca respuestas del usuario (hilos con parentId)
     const replies = await Thread.find({ author: userId, parentId: { $ne: null } })
       .populate({
         path: "author",
         model: User,
-        select: "name image id", // Selecciona los campos "name", "image" e "id" del modelo "User"
+        select: "name image id",
       })
       .populate({
         path: "parentId",
@@ -173,13 +163,13 @@ export async function fetchUserReplies(userId: string) {
         populate: {
           path: "author",
           model: User,
-          select: "name image id", // Selecciona los campos "name", "image" e "id" del modelo "User"
+          select: "name image id",
         },
       });
 
     return replies;
   } catch (error: any) {
-    console.error("Error fetching user replies:", error);
-    throw new Error(`Failed to fetch user replies: ${error.message}`);
+    console.error("Error al obtener respuestas del usuario:", error);
+    throw new Error(`No se pudieron obtener respuestas: ${error.message}`);
   }
 }

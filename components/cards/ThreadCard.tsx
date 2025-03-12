@@ -81,7 +81,7 @@ const ThreadCard = ({ id, currentUserId, parentId, content, author, community, c
                             {isComment && comments.length > 0 && (
                                 <Link href={`/thread/${id}`}>
                                     <p className='mt-1 text-subtle-medium text-gray-1'>
-                                        {comments.length} repl{comments.length > 1 ? "ies" : "y"}
+                                        {comments.length} Respuest{comments.length > 1 ? "as" : "a"}
                                     </p>
                                 </Link>
                             )}

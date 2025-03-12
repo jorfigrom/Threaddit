@@ -69,7 +69,6 @@ async function Page({ params }: { params: { id: string } }) {
                 />
               )}
               {tab.value === "replies" && (
-                // Aquí puedes mostrar otro componente o contenido específico para respuestas
                 <ThreadsTab
                   currentUserId={user.id}
                   accountId={userInfo.id}
@@ -77,8 +76,7 @@ async function Page({ params }: { params: { id: string } }) {
                 />
               )}
               {tab.value === "tagged" && (
-                // Aquí puedes mostrar otro componente o contenido específico para tagged
-                <div>Contenido para tagged</div>
+                <div>Contenido para Likes</div>
               )}
             </TabsContent>
           ))}

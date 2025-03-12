@@ -2,39 +2,39 @@ export const sidebarLinks = [
     {
       imgURL: "/assets/home.svg",
       route: "/",
-      label: "Home",
+      label: "Inicio",
     },
     {
       imgURL: "/assets/search.svg",
       route: "/search",
-      label: "Search",
+      label: "Buscar",
     },
     {
       imgURL: "/assets/heart.svg",
       route: "/activity",
-      label: "Activity",
+      label: "Actividad",
     },
     {
       imgURL: "/assets/create.svg",
       route: "/create-thread",
-      label: "Create Thread",
+      label: "Crear publicación",
     },
     {
       imgURL: "/assets/community.svg",
       route: "/communities",
-      label: "Communities",
+      label: "Comunidades",
     },
     {
       imgURL: "/assets/user.svg",
       route: "/profile",
-      label: "Profile",
+      label: "Perfil",
     },
   ];
   
   export const profileTabs = [
-    { value: "threads", label: "Threads", icon: "/assets/reply.svg" },
-    { value: "replies", label: "Replies", icon: "/assets/members.svg" },
-    { value: "tagged", label: "Tagged", icon: "/assets/tag.svg" },
+    { value: "threads", label: "Publicaciones", icon: "/assets/more.svg" },
+    { value: "replies", label: "Respuestas", icon: "/assets/reply.svg" },
+    { value: "tagged", label: "Likes", icon: "/assets/heart-gray.svg" },
   ];
   
   export const communityTabs = [

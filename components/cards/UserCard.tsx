@@ -46,7 +46,7 @@ function UserCard({ id, name, username, imgUrl, personType }: Props) {
           }
         }}
       >
-        View
+        Ver
       </Button>
     </article>
   );

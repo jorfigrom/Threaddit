@@ -88,7 +88,7 @@ function PostThread({ userId }: { userId: string }) {
                     )}
                 />
 
-                <Button type='submit' className='bg-primary-500'>
+                <Button type='submit' className='bg-[#3763be]'>
                     Publicar thread
                 </Button>
 

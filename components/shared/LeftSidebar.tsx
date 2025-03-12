@@ -33,7 +33,7 @@ function LeftSidebar() {
               <Link 
                 href={link.route}
                 key={link.label}
-                className={`leftsidebar_link ${isActive && 'bg-primary-500'}`} //pagina activa color morado
+                className={`leftsidebar_link ${isActive && 'bg-[#3763be]'}`} //pagina activa color morado
               >
                 <Image 
                   src={link.imgURL}
@@ -57,7 +57,7 @@ function LeftSidebar() {
                   width={24} 
                   height={24} 
                   />
-                  <p className="text-light-2 max-lg:hidden"> Logout </p>
+                  <p className="text-light-2 max-lg:hidden"> Salir </p>
                 </div>
               </SignOutButton>
             </SignedIn>

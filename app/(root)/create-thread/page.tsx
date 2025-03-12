@@ -16,7 +16,7 @@ async function Page() {
   //Realmente seria userInfo._id me da un error y por eso lo paso a string
   return (
     <>
-      <h1 className='head-text'>Create Thread</h1>
+      <h1 className='head-text'>Crear publicación</h1>
     
       <PostThread userId={userInfo._id.toString() ?? ""} />
     </>
