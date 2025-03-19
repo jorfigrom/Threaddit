@@ -1,34 +1,41 @@
 import mongoose from "mongoose";
-import { text } from "stream/consumers";
-
 
 const threadSchema = new mongoose.Schema({
-   text: {type: String, required: true},
-   author: {
+  text: { type: String, required: true },
+  author: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    ref: "User",
     required: true,
-   },
-   community: {
+  },
+  community: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Community',
-   },
-   createdAt: {
+    ref: "Community",
+  },
+  imageThread: {
+    type: String,
+  },
+  createdAt: {
     type: Date,
     default: Date.now,
-   },
-   parentId: {
-    type: String
+  },
+  parentId: {
+    type: String,
+  },
+  children: [
+    {
+      type: mongoose.Schema.Types.ObjectId, // Thread original y los thread hijos son las respuestas
+      ref: "Thread",
     },
-    children:[
-        {
-            type: mongoose.Schema.Types.ObjectId,  //Thread original y los thread hijos son las respuestas
-            ref: 'Thread'
-        }
-    ]
+  ],
+  location: {
+    latitude: { type: Number, required: true }, // Latitud de la ubicación
+    longitude: { type: Number, required: true }, // Longitud de la ubicación
+    placeName: { type: String }, // Nombre del lugar (opcional)
+    address: { type: String }, // Dirección del lugar (opcional)
+  },
 });
 
-const Thread = mongoose.models.Thread || mongoose.model('Thread', threadSchema);
+const Thread = mongoose.models.Thread || mongoose.model("Thread", threadSchema);
 
 export default Thread;
 

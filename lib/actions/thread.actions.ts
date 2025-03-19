@@ -8,10 +8,17 @@ interface Params {
   text: string;
   author: string;
   communityId: string | null;
+  imageThread: string;
+  location: {
+    latitude: number;
+    longitude: number;
+    placeName?: string;
+    address?: string;
+  };
   path: string;
 }
 
-export async function createThread({ text, author, communityId, path }: Params) {
+export async function createThread({ text, author, communityId, imageThread, location ,path }: Params) {
   try {
     connectToDB();
 
@@ -19,6 +26,8 @@ export async function createThread({ text, author, communityId, path }: Params) 
       text,
       author,
       community: null,
+      imageThread,
+      location
     });
 
     // Actualiza el modelo de usuario
@@ -143,33 +152,3 @@ async function fetchAllChildThreads(threadId: string): Promise<any[]> {
   return descendantThreads;
 }
 
-/*
-  Obtiene todas las respuestas de un usuario
-*/
-export async function fetchUserReplies(userId: string) {
-  try {
-    await connectToDB();
-
-    // Busca respuestas del usuario (hilos con parentId)
-    const replies = await Thread.find({ author: userId, parentId: { $ne: null } })
-      .populate({
-        path: "author",
-        model: User,
-        select: "name image id",
-      })
-      .populate({
-        path: "parentId",
-        model: Thread,
-        populate: {
-          path: "author",
-          model: User,
-          select: "name image id",
-        },
-      });
-
-    return replies;
-  } catch (error: any) {
-    console.error("Error al obtener respuestas del usuario:", error);
-    throw new Error(`No se pudieron obtener respuestas: ${error.message}`);
-  }
-}

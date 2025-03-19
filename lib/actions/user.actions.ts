@@ -79,6 +79,7 @@ export async function fetchUserPosts(userId: string) {
           },
         },
       ],
+      options: { sort: { createdAt: -1 } }, //orden decsendente en el perfil
     });
     return threads;
   } catch (error) {

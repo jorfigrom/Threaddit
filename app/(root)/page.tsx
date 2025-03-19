@@ -27,6 +27,7 @@ export default async function Home() {
                 content={post.text}
                 author={post.author}
                 community={post.community}
+                imageThread={post.imageThread}
                 createdAt={post.createdAt}
                 comments={post.children}
               />

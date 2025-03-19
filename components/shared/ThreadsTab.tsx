@@ -25,6 +25,7 @@ interface Result {
       name: string;
       image: string;
     } | null;
+    imageThread: string;
     createdAt: string;
     children: {
       author: {
@@ -70,6 +71,7 @@ async function ThreadsTab({ currentUserId, accountId, accountType }: Props) {
                 }
           }
           community=""
+          imageThread={thread.imageThread}
           createdAt={thread.createdAt}
           comments={thread.children}
         />

@@ -1,51 +1,57 @@
-import React, { useState } from "react";
-import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
+import React, { useCallback, useState } from "react";
+import { GoogleMap, Marker, useJsApiLoader } from "@react-google-maps/api";
 
-// Define una interfaz para las coordenadas
-interface Location {
-  lat: number;
-  lng: number;
+interface MapaInteractivoProps {
+  onLocationChange: (location: {
+    latitude: number;
+    longitude: number;
+    placeName?: string;
+    address?: string;
+  }) => void;
 }
 
-const MapaInteractivo: React.FC = () => {
-  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
+const MapaInteractivo: React.FC<MapaInteractivoProps> = ({ onLocationChange }) => {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "", // Asegúrate de configurar esta variable en tu archivo .env
+    libraries: ["places"],
+  });
 
-  // Estilo del mapa
-  const mapContainerStyle = {
-    width: "100%",
-    height: "500px",
-  };
+  const [markerPosition, setMarkerPosition] = useState<{ lat: number; lng: number } | null>(null);
 
-  // Ubicación inicial (ejemplo: Madrid, España)
-  const defaultCenter: Location = {
-    lat: 40.4168,
-    lng: -3.7038,
-  };
+  const handleMapClick = useCallback(
+    async (event: google.maps.MapMouseEvent) => {
+      if (!event.latLng) return;
 
-  // Función que se ejecuta cuando el usuario hace click en el mapa
-  const handleMapClick = (event: google.maps.MapMouseEvent) => {
-    if (event.latLng) {
-      const lat = event.latLng.lat();
-      const lng = event.latLng.lng();
-      setSelectedLocation({ lat, lng });
+      const latitude = event.latLng.lat();
+      const longitude = event.latLng.lng();
 
-      // Redirigir a la página de creación de post con la ubicación seleccionada
-      window.location.href = `/crear-post?lat=${lat}&lng=${lng}`;
-    }
-  };
+      setMarkerPosition({ lat: latitude, lng: longitude });
+
+      // Opcional: Obtener el nombre del lugar y la dirección usando el servicio Geocoder
+      const geocoder = new google.maps.Geocoder();
+      const response = await geocoder.geocode({ location: { lat: latitude, lng: longitude } });
+
+      const placeName = response.results[0]?.formatted_address || "Ubicación seleccionada";
+      const address = response.results[0]?.formatted_address || "";
+
+      onLocationChange({ latitude, longitude, placeName, address });
+    },
+    [onLocationChange]
+  );
+
+  if (!isLoaded) {
+    return <p>Cargando mapa...</p>;
+  }
 
   return (
-    <LoadScript googleMapsApiKey="TU_API_KEY">
-      <GoogleMap
-        mapContainerStyle={mapContainerStyle}
-        center={defaultCenter}
-        zoom={5}
-        onClick={handleMapClick} // Evento de clic en el mapa
-      >
-        {/* Si el usuario ha seleccionado una ubicación, mostrar un marcador */}
-        {selectedLocation && <Marker position={selectedLocation} />}
-      </GoogleMap>
-    </LoadScript>
+    <GoogleMap
+      mapContainerStyle={{ width: "100%", height: "400px" }}
+      center={markerPosition || { lat: 40.7128, lng: -74.006 }} // Coordenadas iniciales (por defecto: Nueva York)
+      zoom={10}
+      onClick={handleMapClick}
+    >
+      {markerPosition && <Marker position={markerPosition} />}
+    </GoogleMap>
   );
 };
 
