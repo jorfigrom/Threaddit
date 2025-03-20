@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import LikeButton from "@/components/shared/LikeButton";
 
 interface Props {
     id: string;
@@ -20,6 +21,7 @@ interface Props {
         };
     }[];
     isComment?: boolean;
+    likes: string[];
 }
 
 const ThreadCard = ({
@@ -33,12 +35,12 @@ const ThreadCard = ({
     createdAt,
     comments,
     isComment,
+    likes,
 }: Props) => {
     return (
         <article
-            className={`flex w-full flex-col rounded-xl ${
-                isComment ? "px-0 xs:px-7" : "bg-dark-2 p-7"
-            }`}
+            className={`flex w-full flex-col rounded-xl ${isComment ? "px-0 xs:px-7" : "bg-dark-2 p-7"
+                }`}
         >
             <div className="flex items-start justify-between">
                 <div className="flex w-full flex-1 flex-row gap-4">
@@ -74,12 +76,10 @@ const ThreadCard = ({
                         <p className="mt-5 text-small-regular text-light-2">{content}</p>
                         <div className="mt-5 flex flex-col gap-3">
                             <div className="flex gap-3.5">
-                                <Image
-                                    src="/assets/heart-gray.svg"
-                                    alt="heart"
-                                    width={24}
-                                    height={24}
-                                    className="cursor-pointer object-contain"
+                                <LikeButton
+                                    threadId={id.toString()}
+                                    currentUserId={currentUserId.toString()}
+                                    initialLiked={Array.isArray(likes) && likes.includes(currentUserId.toString())} // Verifica si likes es un array // Cambia esto según el estado inicial
                                 />
                                 <Link href={`/thread/${id}`}>
                                     <Image

@@ -28,11 +28,17 @@ const threadSchema = new mongoose.Schema({
     },
   ],
   location: {
-    latitude: { type: Number, required: true }, // Latitud de la ubicación
-    longitude: { type: Number, required: true }, // Longitud de la ubicación
+    latitude: { type: Number }, // Latitud de la ubicación
+    longitude: { type: Number }, // Longitud de la ubicación
     placeName: { type: String }, // Nombre del lugar (opcional)
     address: { type: String }, // Dirección del lugar (opcional)
   },
+  likes: [
+    {
+      type: mongoose.Schema.Types.ObjectId, // ID de los usuarios que dieron like
+      ref: "User",
+    },
+  ],
 });
 
 const Thread = mongoose.models.Thread || mongoose.model("Thread", threadSchema);

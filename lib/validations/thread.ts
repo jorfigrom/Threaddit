@@ -5,8 +5,8 @@ export const ThreadValidation = z.object({
     accountId: z.string(),
     imageThread:  z.string().url().nonempty(),
     location: z.object({
-        latitude: z.number({ required_error: 'La latitud es obligatoria' }),
-        longitude: z.number({ required_error: 'La longitud es obligatoria' }),
+        latitude: z.number().optional(),
+        longitude: z.number().optional(),
         placeName: z.string().optional(), // Opcional
         address: z.string().optional(), // Opcional
     }),

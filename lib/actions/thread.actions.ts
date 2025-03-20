@@ -10,12 +10,13 @@ interface Params {
   communityId: string | null;
   imageThread: string;
   location: {
-    latitude: number;
-    longitude: number;
+    latitude?: number;
+    longitude?: number;
     placeName?: string;
     address?: string;
   };
   path: string;
+  likes: string[];
 }
 
 export async function createThread({ text, author, communityId, imageThread, location ,path }: Params) {
@@ -152,3 +153,83 @@ async function fetchAllChildThreads(threadId: string): Promise<any[]> {
   return descendantThreads;
 }
 
+
+export async function toggleLike(threadId: string, userId: string) {
+  connectToDB();
+
+  try {
+    const thread = await Thread.findById(threadId);
+
+    if (!thread) {
+      throw new Error("Thread no encontrado");
+    }
+
+    const alreadyLiked = thread.likes.includes(userId);
+
+    if (alreadyLiked) {
+      // Si ya dio like, lo eliminamos
+      thread.likes = thread.likes.filter((id: string) => id !== userId);
+    } else {
+      // Si no ha dado like, lo añadimos
+      thread.likes.push(userId);
+    }
+
+    await thread.save();
+    return thread;
+  } catch (error: any) {
+    console.error("Error al actualizar el like:", error);
+    throw new Error("No se pudo actualizar el like");
+  }
+}
+
+import mongoose from "mongoose";
+
+export async function toggleLikeOnThread(threadId: string, userId: string) {
+  connectToDB();
+
+  try {
+    console.log("Iniciando toggleLikeOnThread");
+    console.log("threadId:", threadId, "userId:", userId);
+
+    if (!mongoose.Types.ObjectId.isValid(threadId)) {
+      throw new Error("El threadId no es un ObjectId válido");
+    }
+
+    const thread = await Thread.findById(threadId);
+    if (!thread) {
+      throw new Error("Thread no encontrado");
+    }
+
+    console.log("Thread encontrado:", thread);
+
+    // Busca al usuario por su campo personalizado "id"
+    const user = await User.findOne({ id: userId });
+    if (!user) {
+      throw new Error("Usuario no encontrado");
+    }
+
+    const userObjectId = user._id; // Usa el _id del usuario
+    console.log("userObjectId:", userObjectId);
+
+    const alreadyLiked = thread.likes.some((like: mongoose.Types.ObjectId) =>
+      like.equals(userObjectId)
+    );
+    console.log("alreadyLiked:", alreadyLiked);
+
+    if (alreadyLiked) {
+      thread.likes = thread.likes.filter((like: mongoose.Types.ObjectId) => !like.equals(userObjectId));
+      console.log("Like eliminado");
+    } else {
+      thread.likes.push(userObjectId);
+      console.log("Like añadido");
+    }
+
+    await thread.save();
+    console.log("Thread actualizado:", thread);
+
+    return thread.likes;
+  } catch (error: any) {
+    console.error("Error al actualizar el like:", error);
+    throw new Error("No se pudo actualizar el like");
+  }
+}
