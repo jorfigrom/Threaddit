@@ -79,7 +79,7 @@ const ThreadCard = ({
                                 <LikeButton
                                     threadId={id.toString()}
                                     currentUserId={currentUserId.toString()}
-                                    initialLiked={Array.isArray(likes) && likes.includes(currentUserId.toString())} // Verifica si likes es un array // Cambia esto según el estado inicial
+                                    initialLiked={Array.isArray(likes) && likes.includes(currentUserId.toString())}
                                 />
                                 <Link href={`/thread/${id}`}>
                                     <Image

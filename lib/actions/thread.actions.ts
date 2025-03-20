@@ -202,32 +202,25 @@ export async function toggleLikeOnThread(threadId: string, userId: string) {
 
     console.log("Thread encontrado:", thread);
 
-    // Busca al usuario por su campo personalizado "id"
-    const user = await User.findOne({ id: userId });
-    if (!user) {
-      throw new Error("Usuario no encontrado");
-    }
-
-    const userObjectId = user._id; // Usa el _id del usuario
-    console.log("userObjectId:", userObjectId);
-
-    const alreadyLiked = thread.likes.some((like: mongoose.Types.ObjectId) =>
-      like.equals(userObjectId)
-    );
+    // Verifica si el usuario ya dio like
+    const alreadyLiked = thread.likes.includes(userId);
     console.log("alreadyLiked:", alreadyLiked);
 
     if (alreadyLiked) {
-      thread.likes = thread.likes.filter((like: mongoose.Types.ObjectId) => !like.equals(userObjectId));
+      // Si ya dio like, lo eliminamos
+      thread.likes = thread.likes.filter((like: string) => like !== userId);
       console.log("Like eliminado");
     } else {
-      thread.likes.push(userObjectId);
+      // Si no ha dado like, lo añadimos
+      thread.likes.push(userId);
       console.log("Like añadido");
     }
 
     await thread.save();
-    console.log("Thread actualizado:", thread);
 
-    return thread.likes;
+    console.log("Likes actualizados:", thread.likes);
+
+    return thread.likes; // Devuelve el array actualizado de likes
   } catch (error: any) {
     console.error("Error al actualizar el like:", error);
     throw new Error("No se pudo actualizar el like");

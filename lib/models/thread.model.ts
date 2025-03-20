@@ -35,8 +35,7 @@ const threadSchema = new mongoose.Schema({
   },
   likes: [
     {
-      type: mongoose.Schema.Types.ObjectId, // ID de los usuarios que dieron like
-      ref: "User",
+      type: String, // Cambia de `mongoose.Schema.Types.ObjectId` a `String`
     },
   ],
 });

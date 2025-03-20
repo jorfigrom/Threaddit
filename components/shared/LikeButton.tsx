@@ -27,7 +27,7 @@ const LikeButton = ({ threadId, currentUserId, initialLiked }: LikeButtonProps) 
   return (
     <button onClick={handleLike} className="like-button" disabled={isPending}>
       <img
-        src={liked ? "/assets/heart-red.svg" : "/assets/heart-gray.svg"}
+        src={liked ? "/assets/heart-filled.svg" : "/assets/heart-gray.svg"}
         alt="like"
         width={24}
         height={24}
