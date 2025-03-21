@@ -30,6 +30,7 @@ export default async function Home() {
                 imageThread={post.imageThread}
                 createdAt={post.createdAt}
                 comments={post.children}
+                likes={post.likes}
               />
             ))}
           </>

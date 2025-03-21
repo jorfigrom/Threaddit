@@ -226,3 +226,43 @@ export async function toggleLikeOnThread(threadId: string, userId: string) {
     throw new Error("No se pudo actualizar el like");
   }
 }
+
+
+export async function fetchLikedThreads(userId: string) {
+  connectToDB();
+
+  try {
+    const likedThreads = await Thread.find({ likes: { $in: [userId] } })
+      .populate({
+        path: "author",
+        model: User,
+        select: "_id id name image",
+      })
+      .sort({ createdAt: "desc" }); // Ordenar por fecha de creación
+
+    // Devuelve un objeto con la estructura esperada
+    return {
+      name: "", // Si no necesitas un nombre específico, puedes dejarlo vacío
+      image: "", // Si no necesitas una imagen específica, puedes dejarlo vacío
+      id: userId, // El ID del usuario cuyo perfil estás viendo
+      threads: likedThreads.map((thread) => ({
+        _id: thread._id.toString(),
+        text: thread.text,
+        parentId: thread.parentId,
+        author: {
+          name: thread.author.name,
+          image: thread.author.image,
+          id: thread.author._id.toString(),
+        },
+        community: thread.community,
+        imageThread: thread.imageThread,
+        createdAt: thread.createdAt,
+        children: thread.children,
+        likes: thread.likes.map((like: string) => like.toString()), // Convertir likes a strings
+      })),
+    };
+  } catch (error: any) {
+    console.error("Error al obtener los threads con likes:", error);
+    throw new Error("No se pudieron obtener los threads con likes");
+  }
+}

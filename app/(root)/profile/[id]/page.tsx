@@ -75,8 +75,12 @@ async function Page({ params }: { params: { id: string } }) {
                   accountType="User"
                 />
               )}
-              {tab.value === "tagged" && (
-                <div>Contenido para Likes</div>
+              {tab.value === "likes" && (
+                <ThreadsTab
+                  currentUserId={user.id} // Usuario autenticado
+                  accountId={userInfo.id} // Usuario del perfil
+                  accountType="Likes" // Indica que este tab es para likes
+                />
               )}
             </TabsContent>
           ))}
