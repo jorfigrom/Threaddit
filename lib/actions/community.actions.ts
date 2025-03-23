@@ -9,42 +9,42 @@ import User from "../models/user.model";
 import { connectToDB } from "../mongoose";
 
 export async function createCommunity(
-  id: string,
   name: string,
   username: string,
   image: string,
   bio: string,
-  createdById: string // Cambiado para reflejar que es un ID
+  createdById: string
 ) {
   try {
-    connectToDB();
+    await connectToDB();
 
     // Buscar usuario por ID
     const user = await User.findOne({ id: createdById });
-
     if (!user) {
       throw new Error("Usuario no encontrado");
     }
 
+    // Crear la nueva comunidad con el mismo ID que el usuario
     const newCommunity = new Community({
-      id,
+      id: createdById, // Usar el ID del usuario como el ID de la comunidad
       name,
       username,
       image,
       bio,
-      createdBy: user._id, // Usar el ID de mongoose
+      createdBy: user._id,
     });
 
+    // Guardar la comunidad en la base de datos
     const createdCommunity = await newCommunity.save();
 
-    // Actualizar comunidades del usuario
+    // Actualizar la lista de comunidades del usuario creador
     user.communities.push(createdCommunity._id);
     await user.save();
 
     return createdCommunity;
-  } catch (error) {
-    console.error("Error al crear comunidad:", error);
-    throw error;
+  } catch (error: any) {
+    console.error("Error al crear comunidad:", error.message);
+    throw new Error("No se pudo crear la comunidad");
   }
 }
 

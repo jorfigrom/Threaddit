@@ -70,6 +70,8 @@ function PostThread({ userId }: { userId: string }) {
             imageThread: values.imageThread,
             location: values.location,
             path: pathname,
+            likes: [],
+            
         });
 
         router.push("/");
