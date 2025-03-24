@@ -1,3 +1,4 @@
+import Link from "next/link";
 import Image from "next/image";
 
 const CommunityHeader = ({
@@ -18,20 +19,44 @@ const CommunityHeader = ({
   membersCount: number;
 }) => {
   return (
-    <div className="flex items-center gap-4">
-      <Image
-        src={imgUrl}
-        alt={name}
-        width={80}
-        height={80}
-        className="rounded-full object-cover"
-      />
-      <div>
-        <h1 className="text-2xl font-bold">{name}</h1>
-        <p className="text-sm text-gray-500">@{username}</p>
-        <p className="text-sm text-gray-700">{bio}</p>
-        <p className="text-sm text-gray-500">{membersCount} miembros</p>
+    <div className="flex w-full flex-col justify-start">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="relative h-20 w-20 object-cover">
+            <Image
+              src={imgUrl}
+              alt={name}
+              fill
+              className="rounded-full object-cover shadow-2xl"
+            />
+          </div>
+
+          <div className="flex-1">
+            <h2 className="text-left text-heading3-bold text-light-1">{name}</h2>
+            <p className="text-base-medium text-gray-1">@{username}</p>
+          </div>
+        </div>
+
+        {/* Botón de editar si el usuario es el creador de la comunidad */}
+        {communityId === authUserId && (
+          <Link href={`/communities/${username}/edit`}>
+            <div className="flex cursor-pointer gap-3 rounded-lg bg-dark-3 px-4 py-2">
+              <Image
+                src="/assets/edit.svg"
+                alt="edit"
+                width={16}
+                height={16}
+              />
+              <p className="text-light-2 max-sm:hidden">Editar</p>
+            </div>
+          </Link>
+        )}
       </div>
+
+      <p className="mt-6 max-w-lg text-base-regular text-light-2">{bio}</p>
+      <p className="mt-2 text-sm text-gray-500">{membersCount} miembros</p>
+
+      <div className="mt-12 h-0.5 w-full bg-dark-3" />
     </div>
   );
 };
