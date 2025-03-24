@@ -37,8 +37,16 @@ export const sidebarLinks = [
     { value: "likes", label: "Likes", icon: "/assets/heart-gray.svg" },
   ];
   
+
   export const communityTabs = [
-    { value: "threads", label: "Threads", icon: "/assets/reply.svg" },
-    { value: "members", label: "Members", icon: "/assets/members.svg" },
-    { value: "requests", label: "Requests", icon: "/assets/request.svg" },
+    {
+      label: "Threads",
+      value: "threads",
+      icon: "/assets/threads-icon.svg",
+    },
+    {
+      label: "Miembros",
+      value: "miembros",
+      icon: "/assets/members-icon.svg",
+    },
   ];

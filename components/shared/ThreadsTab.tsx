@@ -1,12 +1,8 @@
 import { redirect } from "next/navigation";
-
-//import { fetchCommunityPosts } from "@/lib/actions/community.actions";
 import { fetchUserPosts } from "@/lib/actions/user.actions";
-import ThreadCard from "../cards/ThreadCard";
 import { fetchLikedThreads } from "@/lib/actions/thread.actions";
-
-
-
+import { fetchCommunityPosts } from "@/lib/actions/community.actions"; // Importar la función para obtener threads de comunidades
+import ThreadCard from "../cards/ThreadCard";
 
 interface Result {
   name: string;
@@ -47,10 +43,15 @@ async function ThreadsTab({ currentUserId, accountId, accountType }: Props) {
   let result: Result;
 
   if (accountType === "Likes") {
+    // Obtener threads basados en "Likes"
     result = await fetchLikedThreads(accountId);
+  } else if (accountType === "Community") {
+    // Obtener threads de la comunidad
+    result = await fetchCommunityPosts(accountId);
   } else {
+    // Obtener threads del usuario
     result = await fetchUserPosts(accountId);
-  } 
+  }
 
   if (!result) {
     redirect("/");
@@ -74,7 +75,15 @@ async function ThreadsTab({ currentUserId, accountId, accountType }: Props) {
                   id: thread.author.id,
                 }
           }
-          community=""
+          community={
+            accountType === "Community" && thread.community
+              ? {
+                  id: thread.community.id,
+                  name: thread.community.name,
+                  image: thread.community.image,
+                }
+              : ""
+          }
           imageThread={thread.imageThread}
           createdAt={thread.createdAt}
           comments={thread.children}
@@ -83,6 +92,6 @@ async function ThreadsTab({ currentUserId, accountId, accountType }: Props) {
       ))}
     </section>
   );
-} 
+}
 
 export default ThreadsTab;
