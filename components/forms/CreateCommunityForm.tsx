@@ -22,6 +22,8 @@ import { communityValidation } from "@/lib/validations/community";
 import Image from "next/image";
 import { UploadButton } from "@uploadthing/react";
 import { OurFileRouter } from "@/app/api/uploadthing/core";
+import { countUserCommunities } from "@/lib/actions/community.actions";
+
 
 interface CreateCommunityFormProps {
     userId: string;
@@ -34,6 +36,7 @@ const CreateCommunityForm = ({ userId }: CreateCommunityFormProps) => {
     const form = useForm<z.infer<typeof communityValidation>>({
         resolver: zodResolver(communityValidation),
         defaultValues: {
+            id: "",
             name: "",
             username: "",
             image: "",
@@ -41,15 +44,26 @@ const CreateCommunityForm = ({ userId }: CreateCommunityFormProps) => {
         },
     });
 
+
+
     const onSubmit = async (values: z.infer<typeof communityValidation>) => {
         try {
+            // Obtener el número de comunidades del usuario
+            const count = await countUserCommunities(userId);
+
+            // Generar el ID dinámico
+            const generatedId = count > 0 ? `${userId}-${count + 1}` : userId;
+
+            // Crear la comunidad con el ID generado
             await createCommunity(
+                generatedId,
                 values.name,
                 values.username,
                 values.image,
                 values.bio,
-                userId // Pasar el ID del usuario como el ID de la comunidad
+                userId
             );
+
             router.push("/communities");
         } catch (error: any) {
             form.setError("root", { message: error.message || "Error al crear la comunidad." });
