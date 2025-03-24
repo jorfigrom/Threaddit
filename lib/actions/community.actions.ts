@@ -40,6 +40,7 @@ export async function createCommunity(
       image,
       bio,
       createdBy: user._id,
+      members: [user._id], // Agregar al creador como miembro
     });
 
     const createdCommunity = await newCommunity.save();
@@ -54,9 +55,13 @@ export async function createCommunity(
     // Asegurarse de que las propiedades sean serializables
     plainCommunity._id = plainCommunity._id.toString();
     plainCommunity.createdBy = plainCommunity.createdBy.toString();
+    plainCommunity.members = plainCommunity.members.map((member: any) => member.toString());
 
     return plainCommunity;
-  } catch (error) {
+  } catch (error:any) {
+    if (error.code === 11000 && error.keyPattern?.username) {
+      throw new Error("El identificador ya está en uso. Por favor, elige otro.");
+    }
     console.error("Error creating community:", error);
     throw error;
   }

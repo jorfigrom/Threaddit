@@ -105,7 +105,7 @@ const CreateCommunityForm = ({ userId }: CreateCommunityFormProps) => {
                     name="username"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Usuario</FormLabel>
+                            <FormLabel>Identificador</FormLabel>
                             <FormControl>
                                 <Input
                                     type="text"

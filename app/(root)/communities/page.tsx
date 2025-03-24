@@ -1,9 +1,7 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
-import Pagination from "@/components/shared/Pagination";
 import CommunityCard from "@/components/cards/communityCard";
-
 import { fetchUser } from "@/lib/actions/user.actions";
 import { fetchCommunities } from "@/lib/actions/community.actions";
 import Link from "next/link";
@@ -19,9 +17,19 @@ async function Page({
   const userInfo = await fetchUser(user.id);
   if (!userInfo?.onboarded) redirect("/onboarding");
 
-  const result = await fetchCommunities({
-    
-  });
+  // Obtener todas las comunidades
+  const { communities } = await fetchCommunities({});
+
+  // Filtrar comunidades
+  const userCommunities = communities.filter(
+    (community) =>
+      community.createdBy === user.id || community.members.some((member: any) => member.id === user.id)
+  );
+
+  const exploreCommunities = communities.filter(
+    (community) =>
+      community.createdBy !== user.id && !community.members.some((member: any) => member.id === user.id)
+  );
 
   return (
     <>
@@ -42,12 +50,14 @@ async function Page({
         </Link>
       </div>
   
-      <section className="mt-9 flex flex-wrap gap-4">
-        {result.communities.length === 0 ? (
-          <p className="no-result">No hay comunidades disponibles</p>
+      {/* Sección de "Tus comunidades" */}
+      <section className="mt-12">
+        <h2 className="section-title mb-6">Tus comunidades</h2>
+        {userCommunities.length === 0 ? (
+          <p className="no-result">No tienes comunidades aún</p>
         ) : (
-          <>
-            {result.communities.map((community) => (
+          <div className="flex flex-wrap gap-6">
+            {userCommunities.map((community) => (
               <CommunityCard
                 key={community.id}
                 id={community.id}
@@ -58,7 +68,29 @@ async function Page({
                 members={community.members}
               />
             ))}
-          </>
+          </div>
+        )}
+      </section>
+  
+      {/* Sección de "Explorar comunidades" */}
+      <section className="mt-12">
+        <h2 className="section-title mb-6">Explorar comunidades</h2>
+        {exploreCommunities.length === 0 ? (
+          <p className="no-result">No hay comunidades para explorar</p>
+        ) : (
+          <div className="flex flex-wrap gap-6">
+            {exploreCommunities.map((community) => (
+              <CommunityCard
+                key={community.id}
+                id={community.id}
+                name={community.name}
+                username={community.username}
+                imgUrl={community.image}
+                bio={community.bio}
+                members={community.members}
+              />
+            ))}
+          </div>
         )}
       </section>
     </>
@@ -67,4 +99,3 @@ async function Page({
 }
 
 export default Page;
-
