@@ -19,22 +19,36 @@ interface Params {
   likes: string[];
 }
 
-export async function createThread({ text, author, communityId, imageThread, location ,path }: Params) {
+export async function createThread({
+  text,
+  author,
+  communityId,
+  imageThread,
+  location,
+  path,
+}: Params) {
   try {
     connectToDB();
 
     const createdThread = await Thread.create({
       text,
       author,
-      community: null,
-      imageThread,
-      location
+      community: communityId, // Asignar el communityId al campo community
+      imageThread, // Asignar la URL de la imagen
+      location,
     });
 
     // Actualiza el modelo de usuario
     await User.findByIdAndUpdate(author, {
       $push: { threads: createdThread._id },
     });
+
+    // Actualiza el modelo de comunidad para incluir el thread
+    if (communityId) {
+      await Community.findByIdAndUpdate(communityId, {
+        $push: { threads: createdThread._id },
+      });
+    }
 
     revalidatePath(path);
   } catch (error: any) {
@@ -45,10 +59,8 @@ export async function createThread({ text, author, communityId, imageThread, loc
 export async function fetchPosts(pageNumber = 1, pageSize = 20) {
   connectToDB();
 
-  // Calcula la cantidad de posts a omitir según la paginación
   const skipAmount = (pageNumber - 1) * pageSize;
 
-  // Obtiene los posts principales (sin padre)
   const postsQuery = Thread.find({ parentId: { $in: [null, undefined] } })
     .sort({ createdAt: "desc" })
     .skip(skipAmount)
@@ -56,9 +68,14 @@ export async function fetchPosts(pageNumber = 1, pageSize = 20) {
     .populate({
       path: "author",
       model: User,
+      select: "_id id name image",
+    })
+    .populate({
+      path: "community",
+      model: Community,
+      select: "_id id name image username", // Asegúrate de incluir "username"
     });
 
-  // Cuenta el total de posts principales
   const totalPostsCount = await Thread.countDocuments({
     parentId: { $in: [null, undefined] },
   });
@@ -183,6 +200,7 @@ export async function toggleLike(threadId: string, userId: string) {
 }
 
 import mongoose from "mongoose";
+import Community from "../models/community.model";
 
 export async function toggleLikeOnThread(threadId: string, userId: string) {
   connectToDB();

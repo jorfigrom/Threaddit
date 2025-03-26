@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import {
@@ -18,12 +19,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { useUploadThing } from "@/lib/uploadthing";
 import { isBase64Image } from "@/lib/utils";
 
-import { userValidation } from "@/lib/validations/user";
 import { ThreadValidation } from "@/lib/validations/thread";
-import { updateUser } from "@/lib/actions/user.actions";
 import { usePathname, useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createThread } from "@/lib/actions/thread.actions";
+import { fetchCommunities } from "@/lib/actions/community.actions"; // Importar la función para obtener comunidades
 import { z } from "zod";
 
 import { UploadButton } from "@uploadthing/react";
@@ -43,9 +43,29 @@ interface Props {
 }
 
 function PostThread({ userId }: { userId: string }) {
-
     const router = useRouter();
     const pathname = usePathname();
+
+    const [communities, setCommunities] = useState<{ id: string; name: string; username: string }[]>([]);
+
+    // Cargar comunidades al montar el componente
+    useEffect(() => {
+        async function loadCommunities() {
+            try {
+                const { communities } = await fetchCommunities(); // Llamar a la función para obtener comunidades
+                console.log("Fetched communities:", communities); // Verificar los datos devueltos
+                const formattedCommunities = communities.map((community: any) => ({
+                    id: community.id, // Ya está formateado en fetchCommunities
+                    name: community.name,
+                    username: community.username,
+                }));
+                setCommunities(formattedCommunities);
+            } catch (error) {
+                console.error("Error loading communities:", error);
+            }
+        }
+        loadCommunities();
+    }, []);
 
     const form = useForm({
         resolver: zodResolver(ThreadValidation),
@@ -53,6 +73,7 @@ function PostThread({ userId }: { userId: string }) {
             thread: "",
             accountId: userId,
             imageThread: "",
+            communityId: "", // Agregar communityId al formulario
             location: {
                 latitude: 0,
                 longitude: 0,
@@ -66,12 +87,11 @@ function PostThread({ userId }: { userId: string }) {
         await createThread({
             text: values.thread,
             author: userId,
-            communityId: null,
+            communityId: values.communityId, // Incluir communityId en la creación del thread
             imageThread: values.imageThread,
             location: values.location,
             path: pathname,
             likes: [],
-            
         });
 
         router.push("/");
@@ -82,41 +102,59 @@ function PostThread({ userId }: { userId: string }) {
         longitude: number;
         placeName?: string;
         address?: string;
-        }) => {
-            form.setValue("location", {
-                ...location,
-                placeName: location.placeName || "",
-                address: location.address || "",
-            });
-
+    }) => {
+        form.setValue("location", {
+            ...location,
+            placeName: location.placeName || "",
+            address: location.address || "",
+        });
     };
 
     return (
         <Form {...form}>
             <form
-                className='mt-10 flex flex-col justify-start gap-10'
+                className="mt-10 flex flex-col justify-start gap-10"
                 onSubmit={form.handleSubmit(onSubmit)}
             >
+                {/* Campo para seleccionar la comunidad */}
+                <FormField
+                    control={form.control}
+                    name="communityId"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel className="text-base-semibold text-light-2">Comunidad</FormLabel>
+                            <FormControl>
+                                <select
+                                    {...field}
+                                    className="border border-dark-4 bg-dark-3 text-light-1 p-2 rounded"
+                                >
+                                    <option value="">Selecciona una comunidad</option>
+                                    {communities.map((community) => (
+                                        <option key={community.id} value={community.id}>
+                                            {community.name} ({community.username})
+                                        </option>
+                                    ))}
+                                </select>
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                {/* Campo para subir una imagen */}
                 <FormField
                     control={form.control}
                     name="imageThread"
                     render={() => (
                         <FormItem>
-                            {/* Etiqueta para el campo */}
                             <FormLabel className="text-base-semibold text-light-2">Imagen</FormLabel>
-
-                            {/* Contenedor principal: Imagen a la izquierda y botón a la derecha */}
                             <div className="flex items-center gap-6">
-                                {/* Contenedor de la imagen con texto superpuesto */}
                                 <div className="relative w-[150px] h-[150px] flex items-center justify-center border-2 border-dashed border-gray-300 rounded-lg overflow-hidden">
-                                    {/* Texto de "Inserta una imagen" si no hay imagen */}
                                     {!form.watch("imageThread") && (
                                         <span className="absolute text-gray-500 text-center px-2">
                                             Inserta una imagen
                                         </span>
                                     )}
-
-                                    {/* Imagen cargada */}
                                     {form.watch("imageThread") && (
                                         <Image
                                             src={form.watch("imageThread")}
@@ -126,25 +164,13 @@ function PostThread({ userId }: { userId: string }) {
                                         />
                                     )}
                                 </div>
-
-                                {/* Botón de subida a la derecha */}
                                 <UploadButton<OurFileRouter, "imageUploader">
                                     endpoint="imageUploader"
                                     onClientUploadComplete={(res) => {
-                                        console.log("Files: ", res);
-                                        alert("Upload Completed");
                                         form.setValue("imageThread", res[0].url);
                                     }}
                                     onUploadError={(error: Error) => {
                                         alert(`ERROR! ${error.message}`);
-                                    }}
-                                    onBeforeUploadBegin={(files) =>
-                                        files.map(
-                                            (f) => new File([f], "renamed-" + f.name, { type: f.type })
-                                        )
-                                    }
-                                    onUploadBegin={(name) => {
-                                        console.log("Uploading: ", name);
                                     }}
                                 />
                             </div>
@@ -152,6 +178,7 @@ function PostThread({ userId }: { userId: string }) {
                     )}
                 />
 
+                {/* Campo para la ubicación */}
                 <FormField
                     control={form.control}
                     name="location"
@@ -164,33 +191,27 @@ function PostThread({ userId }: { userId: string }) {
                     )}
                 />
 
-
+                {/* Campo para el contenido del thread */}
                 <FormField
                     control={form.control}
-                    name='thread'
+                    name="thread"
                     render={({ field }) => (
-                        <FormItem className='flex w-full flex-col gap-3'>
-                            <FormLabel className='text-base-semibold text-light-2'>
-                                Contenido
-                            </FormLabel>
+                        <FormItem className="flex w-full flex-col gap-3">
+                            <FormLabel className="text-base-semibold text-light-2">Contenido</FormLabel>
                             <FormControl className="no-focus border border-dark-4 bg-dark-3 text-light-1">
-                                <Textarea
-                                    rows={12}
-                                    {...field}
-                                />
+                                <Textarea rows={12} {...field} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
                     )}
                 />
 
-                <Button type='submit' className='bg-[#3763be]'>
+                <Button type="submit" className="bg-[#3763be]">
                     Publicar thread
                 </Button>
-
             </form>
         </Form>
-    )
+    );
 }
 
 export default PostThread;

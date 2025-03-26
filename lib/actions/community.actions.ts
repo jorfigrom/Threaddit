@@ -68,10 +68,11 @@ export async function createCommunity(
 }
 
 import mongoose from "mongoose";
-
 export async function fetchCommunityDetails(username: string) {
   try {
     connectToDB();
+
+    console.log("Buscando comunidad con username:", username); // Depuración
 
     const communityDetails = await Community.findOne({ username }).populate([
       {
@@ -141,6 +142,16 @@ export async function fetchCommunityPosts(id: string) {
     throw new Error("Error al obtener las publicaciones de la comunidad.");
   }
 }
+import { ObjectId } from "mongoose";
+
+interface CommunityType {
+  _id: ObjectId;
+  name: string;
+  username: string;
+  image?: string;
+  bio?: string;
+}
+
 export async function fetchCommunities({
   searchString = "",
   pageNumber = 1,
@@ -151,20 +162,14 @@ export async function fetchCommunities({
   pageNumber?: number;
   pageSize?: number;
   sortBy?: SortOrder;
-}) {
+} = {}) {
   try {
     connectToDB();
 
-    // Calculate the number of communities to skip based on the page number and page size.
     const skipAmount = (pageNumber - 1) * pageSize;
-
-    // Create a case-insensitive regular expression for the provided search string.
     const regex = new RegExp(searchString, "i");
 
-    // Create an initial query object to filter communities.
     const query: FilterQuery<typeof Community> = {};
-
-    // If the search string is not empty, add the $or operator to match either username or name fields.
     if (searchString.trim() !== "") {
       query.$or = [
         { username: { $regex: regex } },
@@ -172,28 +177,30 @@ export async function fetchCommunities({
       ];
     }
 
-    // Define the sort options for the fetched communities based on createdAt field and provided sort order.
     const sortOptions = { createdAt: sortBy };
 
-    // Create a query to fetch the communities based on the search and sort criteria.
-    const communitiesQuery = Community.find(query)
+    const communities = await Community.find(query)
       .sort(sortOptions)
       .skip(skipAmount)
       .limit(pageSize)
-      .populate("members");
+      .lean(); // Convertir documentos de Mongoose a objetos planos
 
-    // Count the total number of communities that match the search criteria (without pagination).
+    // Validar que _id esté definido y formatear los datos
+    const formattedCommunities = communities.map((community) => ({
+      id: community._id?.toString() || "", // Convertir _id a string o asignar un valor vacío
+      name: community.name || "Sin nombre",
+      username: community.username || "Sin username",
+      image: community.image || null,
+      bio: community.bio || null,
+    }));
+
     const totalCommunitiesCount = await Community.countDocuments(query);
-
-    const communities = await communitiesQuery.exec();
-
-    // Check if there are more communities beyond the current page.
     const isNext = totalCommunitiesCount > skipAmount + communities.length;
 
-    return { communities, isNext };
+    return { communities: formattedCommunities, isNext };
   } catch (error) {
     console.error("Error fetching communities:", error);
-    throw error;
+    throw new Error("Error al obtener las comunidades.");
   }
 }
 
