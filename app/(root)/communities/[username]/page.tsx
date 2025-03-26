@@ -3,11 +3,9 @@ import MembersTab from "@/components/shared/MemberTab";
 import CommunityHeader from "@/components/shared/CommunityHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-import { fetchCommunityDetails } from "@/lib/actions/community.actions";
+import { fetchCommunityDetails, fetchCommunityPosts } from "@/lib/actions/community.actions";
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-
-import { fetchCommunityPosts } from "@/lib/actions/community.actions";
 import ThreadCard from "@/components/cards/ThreadCard";
 
 interface Thread {
@@ -39,34 +37,29 @@ async function Page({ params }: { params: { username: string } }) {
   const user = await currentUser();
   if (!user) return null;
 
-  const { username } = await params;
-
-  
+  const { username } = params;
 
   // Obtener detalles de la comunidad
   const community = await fetchCommunityDetails(username);
   if (!community) redirect("/404");
 
-  // Obtener los threads de la comunidad
+  // Obtener y ordenar los threads de la comunidad (de más reciente a más antiguo)
   const communityData = await fetchCommunityPosts(community.id);
-  const communityPosts = communityData.threads || []; // Extraer los threads
+  const communityPosts = Array.isArray(communityData)
+    ? communityData
+    : communityData.threads || [];
+
+  const sortedPosts = communityPosts.sort(
+    (a: Thread, b: Thread) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
 
   const communityTabs = [
-    {
-      label: "Threads",
-      value: "threads",
-      icon: "/assets/more.svg",
-    },
-    {
-      label: "Miembros",
-      value: "members",
-      icon: "/assets/members.svg",
-    },
+    { label: "Threads", value: "threads", icon: "/assets/more.svg" },
+    { label: "Miembros", value: "members", icon: "/assets/members.svg" },
   ];
 
   return (
     <section>
-      {/* Encabezado de la comunidad */}
       <CommunityHeader
         communityId={community.id}
         authUserId={user.id}
@@ -82,41 +75,21 @@ async function Page({ params }: { params: { username: string } }) {
           <TabsList className="tab">
             {communityTabs.map((tab) => (
               <TabsTrigger key={tab.label} value={tab.value} className="tab">
-                <Image
-                  src={tab.icon}
-                  alt={tab.label}
-                  width={24}
-                  height={24}
-                  className="object-contain"
-                />
+                <Image src={tab.icon} alt={tab.label} width={24} height={24} className="object-contain" />
                 <p className="max-sm:hidden">{tab.label}</p>
-
-                {tab.label === "Threads" && (
-                  <p className="ml-1 rounded-sm bg-light-4 px-2 py-1 !text-tiny-medium text-light-2">
-                    {communityPosts.length}
-                  </p>
-                )}
-                {tab.label === "Miembros" && (
-                  <p className="ml-1 rounded-sm bg-light-4 px-2 py-1 !text-tiny-medium text-light-2">
-                    {community.members.length}
-                  </p>
-                )}
+                <p className="ml-1 rounded-sm bg-light-4 px-2 py-1 !text-tiny-medium text-light-2">
+                  {tab.label === "Threads" ? communityPosts.length : community.members.length}
+                </p>
               </TabsTrigger>
             ))}
           </TabsList>
 
-          {/* Renderizar contenido de las pestañas */}
           {communityTabs.map((tab) => (
-            <TabsContent
-              key={`content-${tab.label}`}
-              value={tab.value}
-              className="w-full text-light-1"
-            >
+            <TabsContent key={`content-${tab.label}`} value={tab.value} className="w-full text-light-1">
               {tab.value === "threads" && (
-                <div>
-                  {/* Renderizar los threads de la comunidad */}
-                  {communityPosts.length > 0 ? (
-                    communityPosts.map((post: Thread) => (
+                <div className="flex flex-col gap-6"> {/* Agregado gap para separar cards */}
+                  {sortedPosts.length > 0 ? (
+                    sortedPosts.map((post: Thread) => (
                       <ThreadCard
                         key={post._id}
                         id={post._id}
@@ -137,10 +110,7 @@ async function Page({ params }: { params: { username: string } }) {
                 </div>
               )}
               {tab.value === "members" && (
-                <MembersTab
-                  communityId={community.id}
-                  members={community.members}
-                />
+                <MembersTab communityId={community.id} members={community.members} />
               )}
             </TabsContent>
           ))}

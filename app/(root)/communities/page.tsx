@@ -18,17 +18,17 @@ async function Page({
   if (!userInfo?.onboarded) redirect("/onboarding");
 
   // Obtener todas las comunidades
-  const { communities } = await fetchCommunities({});
+  const { communities }: { communities: { id: string; name: any; username: any; image: any; bio: any; createdBy?: string; members?: any[] }[] } = await fetchCommunities({});
 
   // Filtrar comunidades
   const userCommunities = communities.filter(
-    (community) =>
-      community.createdBy === user.id || community.members.some((member: any) => member.id === user.id)
+      (community: { id: string; name: any; username: any; image: any; bio: any; createdBy?: string; members?: any[] }) =>
+        community.createdBy === user.id || community.members?.some((member: any) => member.id === user.id)
   );
 
   const exploreCommunities = communities.filter(
-    (community) =>
-      community.createdBy !== user.id && !community.members.some((member: any) => member.id === user.id)
+      (community: { id: string; name: any; username: any; image: any; bio: any; createdBy?: string; members?: any[] }) =>
+        community.createdBy !== user.id && !community.members?.some((member: any) => member.id === user.id)
   );
 
   return (
@@ -65,7 +65,7 @@ async function Page({
                 username={community.username}
                 imgUrl={community.image}
                 bio={community.bio}
-                members={community.members}
+                members={community.members ?? []}
               />
             ))}
           </div>
@@ -87,7 +87,7 @@ async function Page({
                 username={community.username}
                 imgUrl={community.image}
                 bio={community.bio}
-                members={community.members}
+                members={community.members ?? []}
               />
             ))}
           </div>
