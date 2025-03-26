@@ -97,42 +97,62 @@ export async function fetchCommunityDetails(username: string) {
     throw new Error("Error al obtener los detalles de la comunidad.");
   }
 }
+interface Result {
+  name: string;
+  image: string;
+  id: string;
+  threads: {
+    _id: string;
+    text: string;
+    parentId: string | null;
+    author: {
+      name: string;
+      image: string;
+      id: string;
+    };
+    community: {
+      id: string;
+      name: string;
+      image: string;
+      username: string;
+    };
+    imageThread: string;
+    createdAt: Date;
+    children: any[];
+    likes: any[];
+  }[];
+}
+
 export async function fetchCommunityPosts(id: string) {
   try {
     connectToDB();
 
-    // Buscar la comunidad por su campo `id` (identificador personalizado)
-    const communityPosts = await Community.findOne({ id })
-      .populate({
-        path: "threads",
-        model: Thread,
-        populate: [
-          {
+    const communityPosts = await Community.findById(id).populate({
+      path: "threads",
+      model: Thread,
+      populate: [
+        {
+          path: "author",
+          model: User,
+          select: "name image id", // Select the "name" and "_id" fields from the "User" model
+        },
+        {
+          path: "children",
+          model: Thread,
+          populate: {
             path: "author",
             model: User,
-            select: "name image id",
+            select: "image _id", // Select the "name" and "_id" fields from the "User" model
           },
-          {
-            path: "children",
-            model: Thread,
-            populate: {
-              path: "author",
-              model: User,
-              select: "image _id",
-            },
-          },
-        ],
-      })
-      .lean();
-
-    if (!communityPosts) {
-      throw new Error("Comunidad no encontrada.");
-    }
+        },
+      ],
+    });
 
     return communityPosts;
   } catch (error) {
+    // Handle any errors
     console.error("Error fetching community posts:", error);
-    throw new Error("Error al obtener las publicaciones de la comunidad.");
+    throw error;
   }
 }
 
