@@ -48,6 +48,12 @@ async function ThreadsTab({ currentUserId, accountId, accountType }: Props) {
   } else if (accountType === "Community") {
     // Obtener threads de la comunidad
     result = await fetchCommunityPosts(accountId);
+
+    // Ensure all threads have a defined imageThread property
+    result.threads = result.threads.map((thread) => ({
+      ...thread,
+      imageThread: thread.imageThread || "",
+    }));
   } else {
     // Obtener threads del usuario
     result = await fetchUserPosts(accountId);
@@ -81,6 +87,7 @@ async function ThreadsTab({ currentUserId, accountId, accountType }: Props) {
                   id: thread.community.id,
                   name: thread.community.name,
                   image: thread.community.image,
+                  username: thread.community.name, // Assuming 'name' can be used as 'username'
                 }
               : ""
           }

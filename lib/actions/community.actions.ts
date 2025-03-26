@@ -177,15 +177,17 @@ export async function fetchCommunities({
       .sort(sortOptions)
       .skip(skipAmount)
       .limit(pageSize)
-      .lean(); // Convertir documentos de Mongoose a objetos planos
+      .populate({
+        path: "members",
+        model: User,
+        select: "id name username image",
+      })
+      .lean();
 
-    // Validar que _id esté definido y formatear los datos
+    // Asegurarse de que `members` sea un arreglo
     const formattedCommunities = communities.map((community) => ({
-      id: community._id?.toString() || "", // Convertir _id a string o asignar un valor vacío
-      name: community.name || "Sin nombre",
-      username: community.username || "Sin username",
-      image: community.image || null,
-      bio: community.bio || null,
+      ...community,
+      members: community.members || [], // Si `members` es undefined, asignar un arreglo vacío
     }));
 
     const totalCommunitiesCount = await Community.countDocuments(query);
