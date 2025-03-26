@@ -101,39 +101,32 @@ export async function fetchCommunityPosts(id: string) {
   try {
     connectToDB();
 
-    // Validar y convertir el ID a ObjectId si es necesario
-    const objectId = mongoose.Types.ObjectId.isValid(id)
-      ? new mongoose.Types.ObjectId(id)
-      : null;
-
-    if (!objectId) {
-      throw new Error("El ID proporcionado no es válido.");
-    }
-
-    // Buscar la comunidad y poblar los threads
-    const communityPosts = await Community.findById(objectId).populate({
-      path: "threads",
-      model: Thread,
-      populate: [
-        {
-          path: "author",
-          model: User,
-          select: "name image id",
-        },
-        {
-          path: "children",
-          model: Thread,
-          populate: {
+    // Buscar la comunidad por su campo `id` (identificador personalizado)
+    const communityPosts = await Community.findOne({ id })
+      .populate({
+        path: "threads",
+        model: Thread,
+        populate: [
+          {
             path: "author",
             model: User,
-            select: "image _id",
+            select: "name image id",
           },
-        },
-      ],
-    });
+          {
+            path: "children",
+            model: Thread,
+            populate: {
+              path: "author",
+              model: User,
+              select: "image _id",
+            },
+          },
+        ],
+      })
+      .lean();
 
     if (!communityPosts) {
-      throw new Error("No se encontraron publicaciones para esta comunidad.");
+      throw new Error("Comunidad no encontrada.");
     }
 
     return communityPosts;
@@ -142,6 +135,7 @@ export async function fetchCommunityPosts(id: string) {
     throw new Error("Error al obtener las publicaciones de la comunidad.");
   }
 }
+
 import { ObjectId } from "mongoose";
 
 interface CommunityType {

@@ -7,16 +7,49 @@ import { fetchCommunityDetails } from "@/lib/actions/community.actions";
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
+import { fetchCommunityPosts } from "@/lib/actions/community.actions";
+import ThreadCard from "@/components/cards/ThreadCard";
+
+interface Thread {
+  _id: string;
+  parentId: string | null;
+  text: string;
+  author: {
+    id: string;
+    name: string;
+    image: string;
+  } | null;
+  community: {
+    id: string;
+    name: string;
+    image: string;
+    username: string;
+  } | null;
+  imageThread: string;
+  createdAt: string;
+  comments: {
+    author: {
+      image: string;
+    };
+  }[];
+  likes: string[];
+}
+
 async function Page({ params }: { params: { username: string } }) {
   const user = await currentUser();
   if (!user) return null;
 
-  // Acceder a params.username directamente
-  const username = params.username;
+  const { username } = await params;
+
+  
 
   // Obtener detalles de la comunidad
   const community = await fetchCommunityDetails(username);
   if (!community) redirect("/404");
+
+  // Obtener los threads de la comunidad
+  const communityData = await fetchCommunityPosts(community.id);
+  const communityPosts = communityData.threads || []; // Extraer los threads
 
   const communityTabs = [
     {
@@ -60,7 +93,7 @@ async function Page({ params }: { params: { username: string } }) {
 
                 {tab.label === "Threads" && (
                   <p className="ml-1 rounded-sm bg-light-4 px-2 py-1 !text-tiny-medium text-light-2">
-                    {community.threads.length}
+                    {communityPosts.length}
                   </p>
                 )}
                 {tab.label === "Miembros" && (
@@ -81,8 +114,26 @@ async function Page({ params }: { params: { username: string } }) {
             >
               {tab.value === "threads" && (
                 <div>
-                  {/* Aquí se renderizan los threads */}
-                  <p>Threads de la comunidad</p>
+                  {/* Renderizar los threads de la comunidad */}
+                  {communityPosts.length > 0 ? (
+                    communityPosts.map((post: Thread) => (
+                      <ThreadCard
+                        key={post._id}
+                        id={post._id}
+                        currentUserId={user.id}
+                        parentId={post.parentId}
+                        content={post.text}
+                        author={post.author}
+                        community={community}
+                        imageThread={post.imageThread}
+                        createdAt={post.createdAt}
+                        comments={post.comments || []}
+                        likes={post.likes || []}
+                      />
+                    ))
+                  ) : (
+                    <p>No hay threads en esta comunidad.</p>
+                  )}
                 </div>
               )}
               {tab.value === "members" && (
