@@ -37,14 +37,15 @@ async function Page({ params }: { params: { username: string } }) {
   const user = await currentUser();
   if (!user) return null;
 
-  const { username } = params;
+  const { username } = await params;
 
   // Obtener detalles de la comunidad
   const community = await fetchCommunityDetails(username);
   if (!community) redirect("/404");
 
   // Obtener y ordenar los threads de la comunidad (de más reciente a más antiguo)
-  const communityData = await fetchCommunityPosts(community.id);
+  // Obtener y ordenar los threads de la comunidad (de más reciente a más antiguo)
+  const communityData = await fetchCommunityPosts(community.username); // Cambiar de community.id a community.username
   const communityPosts = Array.isArray(communityData)
     ? communityData
     : communityData.threads || [];
