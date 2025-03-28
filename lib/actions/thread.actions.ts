@@ -30,31 +30,39 @@ export async function createThread({
   try {
     connectToDB();
 
+    // Validar si el communityId es válido o establecerlo como null
+    const communityIdObject = await Community.findOne(
+      { id: communityId },
+      { _id: 1 }
+    );
+
     const createdThread = await Thread.create({
       text,
       author,
-      community: communityId, // Asignar el communityId al campo community
-      imageThread, // Asignar la URL de la imagen
+      community: communityIdObject, // Asegurarse de que sea un ObjectId o null
+      imageThread,
       location,
     });
 
-    // Actualiza el modelo de usuario
+    // Actualizar el modelo de usuario
     await User.findByIdAndUpdate(author, {
       $push: { threads: createdThread._id },
     });
 
-    // Actualiza el modelo de comunidad para incluir el thread
-    if (communityId) {
-      await Community.findByIdAndUpdate(communityId, {
+    // Actualizar el modelo de comunidad si communityId es válido
+    if (communityIdObject) {
+      await Community.findByIdAndUpdate(communityIdObject, {
         $push: { threads: createdThread._id },
       });
     }
 
     revalidatePath(path);
   } catch (error: any) {
+    console.error("Error en createThread:", error.message); // Log para depuración
     throw new Error(`Error al crear el thread: ${error.message}`);
   }
 }
+
 
 export async function fetchPosts(pageNumber = 1, pageSize = 20) {
   connectToDB();
