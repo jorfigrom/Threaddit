@@ -67,23 +67,30 @@ export async function fetchUserPosts(userId: string) {
   try {
     connectToDB();
 
-    // Busca todos las publicaciones del usuario
+    // Busca todos los threads del usuario y asegura que incluyan la información de la comunidad
     const threads = await User.findOne({ id: userId }).populate({
       path: "threads",
       model: Thread,
       populate: [
+        {
+          path: "community", // Asegúrate de incluir la comunidad
+          model: Community,
+          select: "id name image username", // Selecciona solo los campos necesarios
+        },
         {
           path: "children",
           model: Thread,
           populate: {
             path: "author",
             model: User,
-            select: "name image id", // Select the "name" and "_id" fields from the "User" model
+            select: "name image id", // Selecciona los campos necesarios del autor
           },
         },
       ],
-      options: { sort: { createdAt: -1 } }, //orden decsendente en el perfil
+      options: { sort: { createdAt: -1 } }, // Orden descendente por fecha de creación
     });
+
+    // Devuelve los threads con la información de la comunidad incluida
     return threads;
   } catch (error) {
     console.error("Error fetching user threads:", error);

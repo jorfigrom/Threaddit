@@ -49,7 +49,7 @@ async function ThreadsTab({ currentUserId, accountId, accountType }: Props) {
     // Obtener threads de la comunidad
     result = await fetchCommunityPosts(accountId);
 
-    // Ensure all threads have a defined imageThread property
+    // Asegúrate de que todos los threads tengan una propiedad imageThread definida
     result.threads = result.threads.map((thread) => ({
       ...thread,
       imageThread: thread.imageThread || "",
@@ -79,19 +79,9 @@ async function ThreadsTab({ currentUserId, accountId, accountType }: Props) {
                   name: thread.author.name,
                   image: thread.author.image,
                   id: thread.author.id,
-
                 }
           }
-          community={
-            accountType === "Community" && thread.community
-              ? {
-                  id: thread.community.id,
-                  name: thread.community.name,
-                  image: thread.community.image,
-                  username: thread.community.name, // Assuming 'name' can be used as 'username'
-                }
-              : ""
-          }
+          community={thread.community} // Pasar la comunidad directamente
           imageThread={thread.imageThread}
           createdAt={thread.createdAt}
           comments={thread.children}
