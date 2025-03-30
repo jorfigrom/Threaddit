@@ -68,11 +68,10 @@ export async function createCommunity(
 }
 
 import mongoose from "mongoose";
-export async function fetchCommunityDetails(username: string) {
+
+export async function fetchCommunityDetails(username: string, userId: string) {
   try {
     connectToDB();
-
-    console.log("Buscando comunidad con username:", username); // Depuración
 
     const communityDetails = await Community.findOne({ username }).populate([
       {
@@ -91,12 +90,18 @@ export async function fetchCommunityDetails(username: string) {
       throw new Error("Comunidad no encontrada");
     }
 
-    return communityDetails;
+    // Verificar si el usuario es miembro de la comunidad
+    const isMember = communityDetails.members.some(
+      (member: any) => member.id === userId
+    );
+
+    return { ...communityDetails.toObject(), isMember }; // Incluir isMember en la respuesta
   } catch (error) {
     console.error("Error fetching community details:", error);
     throw new Error("Error al obtener los detalles de la comunidad.");
   }
 }
+
 interface Result {
   name: string;
   image: string;
@@ -170,6 +175,8 @@ interface CommunityType {
   bio?: string;
 }
 
+
+
 export async function fetchCommunities({
   searchString = "",
   pageNumber = 1,
@@ -180,14 +187,20 @@ export async function fetchCommunities({
   pageNumber?: number;
   pageSize?: number;
   sortBy?: SortOrder;
-} = {}) {
+}) {
   try {
     connectToDB();
 
+    // Calculate the number of communities to skip based on the page number and page size.
     const skipAmount = (pageNumber - 1) * pageSize;
+
+    // Create a case-insensitive regular expression for the provided search string.
     const regex = new RegExp(searchString, "i");
 
+    // Create an initial query object to filter communities.
     const query: FilterQuery<typeof Community> = {};
+
+    // If the search string is not empty, add the $or operator to match either username or name fields.
     if (searchString.trim() !== "") {
       query.$or = [
         { username: { $regex: regex } },
@@ -195,116 +208,102 @@ export async function fetchCommunities({
       ];
     }
 
+    // Define the sort options for the fetched communities based on createdAt field and provided sort order.
     const sortOptions = { createdAt: sortBy };
 
-    const communities = await Community.find(query)
+    // Create a query to fetch the communities based on the search and sort criteria.
+    const communitiesQuery = Community.find(query)
       .sort(sortOptions)
       .skip(skipAmount)
       .limit(pageSize)
-      .populate({
-        path: "members",
-        model: User,
-        select: "id name username image",
-      })
-      .lean();
+      .populate("members");
 
-    // Asegurarse de que `members` sea un arreglo
-    const formattedCommunities = communities.map((community) => ({
-      ...community,
-      members: community.members || [], // Si `members` es undefined, asignar un arreglo vacío
-    }));
-
+    // Count the total number of communities that match the search criteria (without pagination).
     const totalCommunitiesCount = await Community.countDocuments(query);
+
+    const communities = await communitiesQuery.exec();
+
+    // Check if there are more communities beyond the current page.
     const isNext = totalCommunitiesCount > skipAmount + communities.length;
 
-    return { communities: formattedCommunities, isNext };
+    return { communities, isNext };
   } catch (error) {
     console.error("Error fetching communities:", error);
-    throw new Error("Error al obtener las comunidades.");
+    throw error;
   }
 }
 
-export async function addMemberToCommunity(
-  communityId: string,
-  memberId: string
-) {
+
+
+
+export async function addMemberToCommunity(communityId: string, memberId: string) {
   try {
     connectToDB();
 
-    // Convertir los IDs a ObjectId
-    const communityObjectId = mongoose.Types.ObjectId.isValid(communityId)
-      ? new mongoose.Types.ObjectId(communityId)
-      : communityId;
-
-    const memberObjectId = mongoose.Types.ObjectId.isValid(memberId)
-      ? new mongoose.Types.ObjectId(memberId)
-      : memberId;
-
-    // Buscar la comunidad y el usuario
-    const community = await Community.findById(communityObjectId);
+    const community = await Community.findOne({ id: communityId });
     if (!community) {
       throw new Error("Comunidad no encontrada");
     }
 
-    const user = await User.findById(memberObjectId);
+    const user = await User.findOne({ id: memberId });
     if (!user) {
       throw new Error("Usuario no encontrado");
     }
 
-    // Verificar si el usuario ya es miembro
     if (community.members.includes(user._id)) {
       throw new Error("El usuario ya es miembro de la comunidad");
     }
 
-    // Agregar el usuario a la comunidad
     community.members.push(user._id);
     await community.save();
 
-    // Agregar la comunidad al usuario
     user.communities.push(community._id);
     await user.save();
 
-    return community;
+    return {
+      membersCount: community.members.length,
+      isMember: true,
+    };
   } catch (error) {
     console.error("Error adding member to community:", error);
     throw new Error("Error al agregar miembro a la comunidad.");
   }
 }
 
-export async function removeUserFromCommunity(
-  userId: string,
-  communityId: string
-) {
+export async function removeUserFromCommunity(userId: string, communityId: string) {
   try {
     connectToDB();
 
-    // Convertir los IDs a ObjectId
-    const userObjectId = mongoose.Types.ObjectId.isValid(userId)
-      ? new mongoose.Types.ObjectId(userId)
-      : userId;
+    const community = await Community.findOne({ id: communityId });
+    if (!community) {
+      throw new Error("Comunidad no encontrada");
+    }
 
-    const communityObjectId = mongoose.Types.ObjectId.isValid(communityId)
-      ? new mongoose.Types.ObjectId(communityId)
-      : communityId;
+    const user = await User.findOne({ id: userId });
+    if (!user) {
+      throw new Error("Usuario no encontrado");
+    }
 
-    // Eliminar al usuario de la comunidad
-    await Community.updateOne(
-      { _id: communityObjectId },
-      { $pull: { members: userObjectId } }
+    community.members = community.members.filter(
+      (memberId: any) => memberId.toString() !== user._id.toString()
     );
+    await community.save();
 
-    // Eliminar la comunidad del usuario
-    await User.updateOne(
-      { _id: userObjectId },
-      { $pull: { communities: communityObjectId } }
+    user.communities = user.communities.filter(
+      (communityId: any) => communityId.toString() !== community._id.toString()
     );
+    await user.save();
 
-    return { success: true };
+    return {
+      membersCount: community.members.length,
+      isMember: false,
+    };
   } catch (error) {
     console.error("Error removing user from community:", error);
     throw new Error("Error al eliminar al usuario de la comunidad.");
   }
 }
+
 export async function updateCommunityInfo(
   communityId: string,
   name: string,

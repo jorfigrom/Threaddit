@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import CommunityMembershipButton from "./CommunityMembershipButton";
 
 const CommunityHeader = ({
   communityId,
@@ -9,6 +10,7 @@ const CommunityHeader = ({
   imgUrl,
   bio,
   membersCount,
+  isMember,
 }: {
   communityId: string;
   authUserId: string;
@@ -17,6 +19,7 @@ const CommunityHeader = ({
   imgUrl: string;
   bio: string;
   membersCount: number;
+  isMember: boolean;
 }) => {
   return (
     <div className="flex w-full flex-col justify-start">
@@ -37,8 +40,7 @@ const CommunityHeader = ({
           </div>
         </div>
 
-        {/* Botón de editar si el usuario es el creador de la comunidad */}
-        {communityId === authUserId && (
+        {communityId === authUserId ? (
           <Link href={`/communities/${username}/edit`}>
             <div className="flex cursor-pointer gap-3 rounded-lg bg-dark-3 px-4 py-2">
               <Image
@@ -50,12 +52,17 @@ const CommunityHeader = ({
               <p className="text-light-2 max-sm:hidden">Editar</p>
             </div>
           </Link>
+        ) : (
+          <CommunityMembershipButton
+            communityId={communityId}
+            userId={authUserId}
+            isMember={isMember}
+            initialMembersCount={membersCount}
+          />
         )}
       </div>
 
       <p className="mt-6 max-w-lg text-base-regular text-light-2">{bio}</p>
-      <p className="mt-2 text-sm text-gray-500">{membersCount} miembros</p>
-
       <div className="mt-12 h-0.5 w-full bg-dark-3" />
     </div>
   );

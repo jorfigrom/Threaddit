@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import LikeButton from "@/components/shared/LikeButton";
+import DeleteButton from "@/components/shared/DeleteButton";
 
 interface Props {
   id: string;
@@ -116,6 +117,14 @@ const ThreadCard = ({
                   className="cursor-pointer object-contain"
                 />
               </div>
+
+              <DeleteButton
+                threadId={JSON.stringify(id)}
+                currentUserId={currentUserId}
+                authorId={author?.id || ""}
+                parentId={parentId}
+                isComment={isComment}
+              />
 
               {/* Información de la comunidad */}
               {community ? (

@@ -68,7 +68,7 @@ async function Page({ params }: { params: { username: string } }) {
         username={community.username}
         imgUrl={community.image}
         bio={community.bio}
-        membersCount={community.members.length}
+        membersCount={community.members?.length}
       />
 
       <div className="mt-9">
@@ -79,7 +79,7 @@ async function Page({ params }: { params: { username: string } }) {
                 <Image src={tab.icon} alt={tab.label} width={24} height={24} className="object-contain" />
                 <p className="max-sm:hidden">{tab.label}</p>
                 <p className="ml-1 rounded-sm bg-light-4 px-2 py-1 !text-tiny-medium text-light-2">
-                  {tab.label === "Threads" ? communityPosts.length : community.members.length}
+                  {tab.label === "Threads" ? communityPosts.length : community.members?.length}
                 </p>
               </TabsTrigger>
             ))}
