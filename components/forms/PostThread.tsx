@@ -23,7 +23,7 @@ import { ThreadValidation } from "@/lib/validations/thread";
 import { usePathname, useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createThread } from "@/lib/actions/thread.actions";
-import { fetchCommunities } from "@/lib/actions/community.actions"; // Importar la función para obtener comunidades
+import { fetchAllCommunities } from "@/lib/actions/community.actions"; // Importar la nueva función
 import { z } from "zod";
 
 import { UploadButton } from "@uploadthing/react";
@@ -52,14 +52,8 @@ function PostThread({ userId }: { userId: string }) {
     useEffect(() => {
         async function loadCommunities() {
             try {
-                const { communities } = await fetchCommunities(); // Llamar a la función para obtener comunidades
-                console.log("Fetched communities:", communities); // Verificar los datos devueltos
-                const formattedCommunities = communities.map((community: any) => ({
-                    id: community.id, // Ya está formateado en fetchCommunities
-                    name: community.name,
-                    username: community.username,
-                }));
-                setCommunities(formattedCommunities);
+                const communities = await fetchAllCommunities(); // Usar la nueva función
+                setCommunities(communities);
             } catch (error) {
                 console.error("Error loading communities:", error);
             }

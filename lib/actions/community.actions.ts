@@ -233,6 +233,27 @@ export async function fetchCommunities({
   }
 }
 
+export async function fetchAllCommunities() {
+  try {
+    connectToDB();
+
+    // Obtener todas las comunidades sin filtros ni paginación
+    const communities = await Community.find({}, "id name username").exec();
+
+    // Formatear las comunidades para que sean adecuadas para el formulario
+    return communities.map((community) => ({
+      id: community.id,
+      name: community.name,
+      username: community.username,
+    }));
+  } catch (error) {
+    console.error("Error fetching all communities:", error);
+    throw new Error("Error al obtener todas las comunidades.");
+  }
+}
+
+
+
 
 
 
