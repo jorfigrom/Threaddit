@@ -334,32 +334,6 @@ export async function removeUserFromCommunity(userId: string, communityId: strin
   }
 }
 
-export async function updateCommunityInfo(
-  communityId: string,
-  name: string,
-  username: string,
-  image: string
-) {
-  try {
-    connectToDB();
-
-    // Find the community by its _id and update the information
-    const updatedCommunity = await Community.findOneAndUpdate(
-      { id: communityId },
-      { name, username, image }
-    );
-
-    if (!updatedCommunity) {
-      throw new Error("Community not found");
-    }
-
-    return updatedCommunity;
-  } catch (error) {
-    // Handle any errors
-    console.error("Error updating community information:", error);
-    throw error;
-  }
-}
 
 export async function deleteCommunity(communityId: string) {
   try {
@@ -439,5 +413,76 @@ export async function fetchCommunityMembers(communityId: string) {
   } catch (error) {
     console.error("Error fetching community members:", error);
     throw new Error("Error al obtener los miembros de la comunidad.");
+  }
+}
+
+
+interface CommunityEditDetails {
+  _id: string;
+  name: string;
+  username: string;
+  bio: string;
+  image: string;
+}
+export async function fetchCommunityEditDetails(username: string) {
+  try {
+    connectToDB();
+
+    // Buscar la comunidad por su `username`
+    const community = await Community.findOne({ username })
+      .select("_id name username bio image");
+
+    if (!community) {
+      throw new Error("Comunidad no encontrada");
+    }
+
+    // Convertir el documento de Mongoose en un objeto plano
+    const plainCommunity = community.toObject();
+
+    // Asegurarse de que las propiedades sean serializables
+    plainCommunity.id = plainCommunity._id.toString();
+    delete plainCommunity._id; // Eliminar `_id` si no es necesario
+    plainCommunity.bio = plainCommunity.bio ?? "";
+    plainCommunity.image = plainCommunity.image ?? "";
+
+    return plainCommunity;
+  } catch (error) {
+    console.error("Error fetching community edit details:", error);
+    throw new Error("Error al obtener los detalles de la comunidad para editar.");
+  }
+}
+
+
+
+export async function updateCommunityInfo(
+  communityId: string,
+  name: string,
+  username: string,
+  image: string,
+  bio : string
+) {
+  try {
+    connectToDB();
+
+    // Convertir `communityId` a ObjectId si es necesario
+    const query = mongoose.Types.ObjectId.isValid(communityId)
+      ? { _id: new mongoose.Types.ObjectId(communityId) }
+      : { id: communityId };
+
+    // Buscar la comunidad por su ID y actualizar la información
+    const updatedCommunity = await Community.findOneAndUpdate(
+      query,
+      { name, username, image, bio },
+      { new: true } // Retornar el documento actualizado
+    );
+
+    if (!updatedCommunity) {
+      throw new Error("Community not found");
+    }
+
+    return updatedCommunity;
+  } catch (error) {
+    console.error("Error updating community information:", error);
+    throw error;
   }
 }

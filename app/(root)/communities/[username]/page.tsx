@@ -40,7 +40,7 @@ async function Page({ params }: { params: { username: string } }) {
   const { username } = await params;
 
   // Obtener detalles de la comunidad
-  const community = await fetchCommunityDetails(username);
+  const community = await fetchCommunityDetails(username, user.id);
   if (!community) redirect("/404");
 
   // Obtener y ordenar los threads de la comunidad (de más reciente a más antiguo)
@@ -69,6 +69,7 @@ async function Page({ params }: { params: { username: string } }) {
         imgUrl={community.image}
         bio={community.bio}
         membersCount={community.members?.length}
+        members={community.members} // Lista de miembros
       />
 
       <div className="mt-9">
