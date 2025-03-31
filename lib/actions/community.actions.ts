@@ -295,23 +295,32 @@ export async function removeUserFromCommunity(userId: string, communityId: strin
   try {
     connectToDB();
 
+    // Buscar la comunidad por su ID
     const community = await Community.findOne({ id: communityId });
     if (!community) {
       throw new Error("Comunidad no encontrada");
     }
 
+    // Buscar el usuario por su ID
     const user = await User.findOne({ id: userId });
     if (!user) {
       throw new Error("Usuario no encontrado");
     }
 
+    // Verificar si el usuario es miembro de la comunidad
+    if (!community.members.includes(user._id)) {
+      throw new Error("El usuario no es miembro de la comunidad");
+    }
+
+    // Eliminar al usuario de la lista de miembros de la comunidad
     community.members = community.members.filter(
-      (memberId: any) => memberId.toString() !== user._id.toString()
+      (memberId: any) => !memberId.equals(user._id)
     );
     await community.save();
 
+    // Eliminar la comunidad de la lista de comunidades del usuario
     user.communities = user.communities.filter(
-      (communityId: any) => communityId.toString() !== community._id.toString()
+      (communityId: any) => !communityId.equals(community._id)
     );
     await user.save();
 
@@ -402,5 +411,33 @@ export async function countUserCommunities(userId: string): Promise<number> {
   } catch (error) {
     console.error("Error counting user communities:", error);
     throw new Error("Error al contar las comunidades del usuario.");
+  }
+}
+
+
+export async function fetchCommunityMembers(communityId: string) {
+  try {
+    connectToDB();
+
+    // Buscar la comunidad por su ID y obtener los miembros
+    const community = await Community.findOne({ id: communityId }).populate({
+      path: "members",
+      model: User,
+      select: "id name username", // Seleccionar solo los campos necesarios
+    });
+
+    if (!community) {
+      throw new Error("Comunidad no encontrada");
+    }
+
+    // Retornar la lista de miembros
+    return community.members.map((member: any) => ({
+      id: member.id,
+      name: member.name,
+      username: member.username,
+    }));
+  } catch (error) {
+    console.error("Error fetching community members:", error);
+    throw new Error("Error al obtener los miembros de la comunidad.");
   }
 }

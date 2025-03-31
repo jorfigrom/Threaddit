@@ -10,7 +10,7 @@ const CommunityHeader = ({
   imgUrl,
   bio,
   membersCount,
-  isMember,
+  members, // Lista de miembros
 }: {
   communityId: string;
   authUserId: string;
@@ -19,7 +19,7 @@ const CommunityHeader = ({
   imgUrl: string;
   bio: string;
   membersCount: number;
-  isMember: boolean;
+  members: { id: string }[]; // Lista de miembros con sus IDs
 }) => {
   return (
     <div className="flex w-full flex-col justify-start">
@@ -54,11 +54,11 @@ const CommunityHeader = ({
           </Link>
         ) : (
           <CommunityMembershipButton
-            communityId={communityId}
-            userId={authUserId}
-            isMember={isMember}
-            initialMembersCount={membersCount}
-          />
+  communityId={communityId}
+  userId={authUserId}
+  members={members} // Pasar la lista de miembros
+  initialMembersCount={membersCount}
+/>
         )}
       </div>
 

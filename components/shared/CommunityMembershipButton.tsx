@@ -1,40 +1,55 @@
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
-import { addMemberToCommunity, removeUserFromCommunity } from "../../lib/actions/community.actions";
+import { useState, useTransition, useEffect } from "react";
+import { addMemberToCommunity, removeUserFromCommunity, fetchCommunityMembers } from "../../lib/actions/community.actions";
 
 const CommunityMembershipButton = ({
   communityId,
   userId,
-  isMember: initialIsMember,
   initialMembersCount,
+  members,
 }: {
   communityId: string;
   userId: string;
-  isMember: boolean;
   initialMembersCount: number;
+  members: { id: string }[]; // Add members prop
 }) => {
-  const [isMember, setIsMember] = useState(initialIsMember);
+  const [isMember, setIsMember] = useState(false); // Inicializar como falso
   const [membersCount, setMembersCount] = useState(initialMembersCount);
   const [isPending, startTransition] = useTransition();
 
-  // Sincronizar el estado local con el valor inicial recibido como prop
+  // Obtener la lista de miembros y verificar si el usuario es miembro
   useEffect(() => {
-    setIsMember(initialIsMember);
-  }, [initialIsMember]);
+    const fetchMembers = async () => {
+      try {
+        const members = await fetchCommunityMembers(communityId); // Llamada a la nueva función
+        const userIsMember: boolean = members.some((member: { id: string }) => member.id === userId);
+        setIsMember(userIsMember);
+        setMembersCount(members.length); // Actualizar el número de miembros
+      } catch (error) {
+        console.error("Error fetching community members:", error);
+      }
+    };
+  
+    fetchMembers();
+  }, [communityId, userId]);
 
   const handleMembershipToggle = async () => {
     startTransition(async () => {
       try {
         if (isMember) {
-          const { membersCount: updatedCount, isMember: updatedIsMember } =
-            await removeUserFromCommunity(userId, communityId);
-          setIsMember(updatedIsMember);
+          const { membersCount: updatedCount } = await removeUserFromCommunity(
+            userId,
+            communityId
+          );
+          setIsMember(false);
           setMembersCount(updatedCount);
         } else {
-          const { membersCount: updatedCount, isMember: updatedIsMember } =
-            await addMemberToCommunity(communityId, userId);
-          setIsMember(updatedIsMember);
+          const { membersCount: updatedCount } = await addMemberToCommunity(
+            communityId,
+            userId
+          );
+          setIsMember(true);
           setMembersCount(updatedCount);
         }
       } catch (error) {
