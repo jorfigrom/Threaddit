@@ -3,18 +3,22 @@ import CommunityProfileForm from "@/components/forms/CommunityProfileForm";
 
 async function Page({ params }: { params: { username: string } }) {
   const { username } = await params;
-
-  // Obtener los detalles de la comunidad para editar
   const community = await fetchCommunityEditDetails(username);
 
   if (!community) {
     return <p>Comunidad no encontrada</p>;
   }
 
-  const plainCommunity = JSON.parse(JSON.stringify(community));
+  // Construir manualmente el objeto literal para asegurar un prototipo válido
+  const fixedCommunity = {
+    id: community?.id,
+    name: community?.name,
+    username: community?.username,
+    bio: community?.bio,
+    image: community?.image,
+  };
 
 
-  console.log("Plain community object:", plainCommunity); // Depuración
 
   return (
     <main className="mx-auto flex max-w-3xl flex-col justify-start px-10 py-20">
@@ -24,7 +28,7 @@ async function Page({ params }: { params: { username: string } }) {
       </p>
 
       <section className="mt-9 bg-dark-2 p-10">
-        <CommunityProfileForm community={plainCommunity} btnTitle="Guardar Cambios" />
+        <CommunityProfileForm community={fixedCommunity} btnTitle="Guardar Cambios" />
       </section>
     </main>
   );

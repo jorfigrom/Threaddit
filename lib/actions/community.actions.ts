@@ -166,6 +166,7 @@ export async function fetchCommunityPosts(username: string) {
 }
 
 import { ObjectId } from "mongoose";
+import { revalidatePath } from "next/cache";
 
 interface CommunityType {
   _id: ObjectId;
@@ -424,63 +425,57 @@ interface CommunityEditDetails {
   bio: string;
   image: string;
 }
+
+
 export async function fetchCommunityEditDetails(username: string) {
   try {
     connectToDB();
 
-    // Buscar la comunidad por su `username`
-    const community = await Community.findOne({ username })
-      .select("_id name username bio image");
+    return await Community.findOne({ username }).populate({
+      path: "createdBy",
+      model: User,
+    });
 
-    if (!community) {
-      throw new Error("Comunidad no encontrada");
-    }
-
-    // Convertir el documento de Mongoose en un objeto plano
-    const plainCommunity = community.toObject();
-
-    // Asegurarse de que las propiedades sean serializables
-    plainCommunity.id = plainCommunity._id.toString();
-    delete plainCommunity._id; // Eliminar `_id` si no es necesario
-    plainCommunity.bio = plainCommunity.bio ?? "";
-    plainCommunity.image = plainCommunity.image ?? "";
-
-    return plainCommunity;
   } catch (error) {
     console.error("Error fetching community edit details:", error);
     throw new Error("Error al obtener los detalles de la comunidad para editar.");
   }
 }
 
+interface Params {
+  communityId: string;
+  name: string;
+  username: string;
+  image: string;
+  bio: string;
+  path: string; // Added path property
+}
 
-
-export async function updateCommunityInfo(
-  communityId: string,
-  name: string,
-  username: string,
-  image: string,
-  bio : string
-) {
+export async function updateCommunityInfo({
+  communityId,
+  name,
+  username,
+  image,
+  path,
+  bio
+}: Params): Promise<void> {
   try {
     connectToDB();
 
-    // Convertir `communityId` a ObjectId si es necesario
-    const query = mongoose.Types.ObjectId.isValid(communityId)
-      ? { _id: new mongoose.Types.ObjectId(communityId) }
-      : { id: communityId };
-
-    // Buscar la comunidad por su ID y actualizar la información
-    const updatedCommunity = await Community.findOneAndUpdate(
-      query,
-      { name, username, image, bio },
-      { new: true } // Retornar el documento actualizado
+    await Community.findOneAndUpdate(
+      { id: communityId },
+      {
+        name,
+        username,
+        image,
+        bio,
+      },
+      { new: true, runValidators: true } // Asegurarse de que se ejecuten los validadores
     );
 
-    if (!updatedCommunity) {
-      throw new Error("Community not found");
+    if (path === "/communities/${username}/edit") {
+      revalidatePath(path); // Revalidar la ruta después de la actualización
     }
-
-    return updatedCommunity;
   } catch (error) {
     console.error("Error updating community information:", error);
     throw error;
