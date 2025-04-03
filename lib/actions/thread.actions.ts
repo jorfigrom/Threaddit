@@ -351,3 +351,48 @@ export async function deleteThread(id: string, path: string): Promise<void> {
     throw new Error(`Failed to delete thread: ${error.message}`);
   }
 }
+
+
+export async function fetchPostsWithLocation(pageNumber = 1, pageSize = 20) {
+  connectToDB();
+
+  const skipAmount = (pageNumber - 1) * pageSize;
+
+  const postsQuery = Thread.find({ parentId: { $in: [null, undefined] } })
+    .sort({ createdAt: "desc" })
+    .skip(skipAmount)
+    .limit(pageSize)
+    .populate({
+      path: "author",
+      model: User,
+      select: "_id id name image",
+    })
+    .populate({
+      path: "community",
+      model: Community,
+      select: "_id id name image username",
+    });
+
+  const totalPostsCount = await Thread.countDocuments({
+    parentId: { $in: [null, undefined] },
+  });
+
+  const posts = await postsQuery.exec();
+
+  // Formatear los posts para incluir la ubicación
+  const formattedPosts = posts.map((post) => ({
+    id: post._id.toString(),
+    text: post.text,
+    author: post.author,
+    community: post.community,
+    imageThread: post.imageThread,
+    createdAt: post.createdAt,
+    location: post.location, // Incluye la ubicación completa
+    likes: post.likes,
+    comments: post.children,
+  }));
+
+  const isNext = totalPostsCount > skipAmount + posts.length;
+
+  return { posts: formattedPosts, isNext };
+}

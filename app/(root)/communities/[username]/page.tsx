@@ -31,6 +31,10 @@ interface Thread {
     };
   }[];
   likes: string[];
+  location?: {
+    latitude: number;
+    longitude: number;
+  }; // Added location property
 }
 
 async function Page({ params }: { params: { username: string } }) {
@@ -44,8 +48,7 @@ async function Page({ params }: { params: { username: string } }) {
   if (!community) redirect("/404");
 
   // Obtener y ordenar los threads de la comunidad (de más reciente a más antiguo)
-  // Obtener y ordenar los threads de la comunidad (de más reciente a más antiguo)
-  const communityData = await fetchCommunityPosts(community.username); // Cambiar de community.id a community.username
+  const communityData = await fetchCommunityPosts(community.username);
   const communityPosts = Array.isArray(communityData)
     ? communityData
     : communityData.threads || [];
@@ -69,7 +72,7 @@ async function Page({ params }: { params: { username: string } }) {
         imgUrl={community.image}
         bio={community.bio}
         membersCount={community.members?.length}
-        members={community.members} // Lista de miembros
+        members={community.members}
       />
 
       <div className="mt-9">
@@ -89,7 +92,7 @@ async function Page({ params }: { params: { username: string } }) {
           {communityTabs.map((tab) => (
             <TabsContent key={`content-${tab.label}`} value={tab.value} className="w-full text-light-1">
               {tab.value === "threads" && (
-                <div className="flex flex-col gap-6"> {/* Agregado gap para separar cards */}
+                <div className="flex flex-col gap-6">
                   {sortedPosts.length > 0 ? (
                     sortedPosts.map((post: Thread) => (
                       <ThreadCard
@@ -104,6 +107,7 @@ async function Page({ params }: { params: { username: string } }) {
                         createdAt={post.createdAt}
                         comments={post.comments || []}
                         likes={post.likes || []}
+                        location={post.location || {}} // Pasar la ubicación al componente
                       />
                     ))
                   ) : (

@@ -23,9 +23,13 @@ interface Props {
   }[];
   isComment?: boolean;
   likes: string[];
+  location?: {
+    latitude?: number;
+    longitude?: number;
+    placeName?: string;
+    address?: string; // Asegúrate de incluir la dirección
+  };
 }
-
-
 
 const ThreadCard = ({
   id,
@@ -39,13 +43,13 @@ const ThreadCard = ({
   comments,
   isComment,
   likes,
+  location, // Recibir la ubicación
 }: Props) => {
-
-
   return (
     <article
-      className={`flex w-full flex-col rounded-xl ${isComment ? "px-0 xs:px-7" : "bg-dark-2 p-7"
-        }`}
+      className={`flex w-full flex-col rounded-xl ${
+        isComment ? "px-0 xs:px-7" : "bg-dark-2 p-7"
+      }`}
     >
       <div className="flex items-start justify-between">
         <div className="flex w-full flex-1 flex-row gap-4">
@@ -61,11 +65,20 @@ const ThreadCard = ({
             <div className="thread-card_bar"></div>
           </div>
           <div className="flex flex-col w-full">
-            <Link href={`/profile/${author?.id}`} className="w-fit">
-              <h4 className="cursor-pointer text-base-semibold text-light-1">
-                {author?.name}
-              </h4>
-            </Link>
+            <div className="flex justify-between items-center">
+              <Link href={`/profile/${author?.id}`} className="w-fit">
+                <h4 className="cursor-pointer text-base-semibold text-light-1">
+                  {author?.name}
+                </h4>
+              </Link>
+
+              {/* Mostrar la dirección alineada con el nombre de usuario */}
+              {location?.address && (
+                <p className="text-small-regular text-light-2 ml-4">
+                  Dirección: {location.address}
+                </p>
+              )}
+            </div>
 
             {/* Renderizar la imagen del thread si existe */}
             {imageThread && (
@@ -102,20 +115,6 @@ const ThreadCard = ({
                     className="cursor-pointer object-contain"
                   />
                 </Link>
-                <Image
-                  src="/assets/repost.svg"
-                  alt="repost"
-                  width={24}
-                  height={24}
-                  className="cursor-pointer object-contain"
-                />
-                <Image
-                  src="/assets/share.svg"
-                  alt="share"
-                  width={24}
-                  height={24}
-                  className="cursor-pointer object-contain"
-                />
               </div>
 
               <DeleteButton
@@ -127,30 +126,35 @@ const ThreadCard = ({
               />
 
               {/* Información de la comunidad */}
-              {community ? (
-                typeof community === "string" ? (
-                  <p className="text-small-regular text-light-2">
-                    Comunidad: {community}
-                  </p>
-                ) : (
-                  <Link href={`/communities/${community.username}`} className="flex items-center gap-2">
-                    {community.image && (
-                      <Image
-                        src={community.image}
-                        alt={community.name}
-                        width={24}
-                        height={24}
-                        className="rounded-full object-cover"
-                      />
-                    )}
+              <div className="flex items-center gap-4">
+                {community ? (
+                  typeof community === "string" ? (
                     <p className="text-small-regular text-light-2">
-                      {community.name}
+                      Comunidad: {community}
                     </p>
-                  </Link>
-                )
-              ) : (
-                <p className="text-small-regular text-light-2">Sin comunidad</p>
-              )}
+                  ) : (
+                    <Link
+                      href={`/communities/${community.username}`}
+                      className="flex items-center gap-2"
+                    >
+                      {community.image && (
+                        <Image
+                          src={community.image}
+                          alt={community.name}
+                          width={24}
+                          height={24}
+                          className="rounded-full object-cover"
+                        />
+                      )}
+                      <p className="text-small-regular text-light-2">
+                        {community.name}
+                      </p>
+                    </Link>
+                  )
+                ) : (
+                  <p className="text-small-regular text-light-2">Sin comunidad</p>
+                )}
+              </div>
             </div>
           </div>
         </div>

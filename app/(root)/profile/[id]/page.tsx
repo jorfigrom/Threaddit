@@ -68,13 +68,6 @@ async function Page({ params }: { params: { id: string } }) {
                   accountType="User"
                 />
               )}
-              {tab.value === "replies" && (
-                <ThreadsTab
-                  currentUserId={user.id}
-                  accountId={userInfo.id}
-                  accountType="User"
-                />
-              )}
               {tab.value === "likes" && (
                 <ThreadsTab
                   currentUserId={user.id} // Usuario autenticado

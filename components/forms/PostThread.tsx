@@ -180,6 +180,15 @@ function PostThread({ userId }: { userId: string }) {
                         <FormItem>
                             <FormLabel className="text-base-semibold text-light-2">Ubicación</FormLabel>
                             <MapaInteractivo onLocationChange={handleLocationChange} />
+                            {/* Mostrar los datos de la ubicación seleccionada */}
+                            {form.watch("location") && (
+                                <div className="mt-4 text-light-1">
+                                    <p><strong>Latitud:</strong> {form.watch("location").latitude}</p>
+                                    <p><strong>Longitud:</strong> {form.watch("location").longitude}</p>
+                                    <p><strong>Nombre del lugar:</strong> {form.watch("location").placeName}</p>
+                                    <p><strong>Dirección:</strong> {form.watch("location").address}</p>
+                                </div>
+                            )}
                             <FormMessage />
                         </FormItem>
                     )}

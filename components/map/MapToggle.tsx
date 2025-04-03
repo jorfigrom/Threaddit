@@ -1,8 +1,8 @@
-import React, { useCallback, useRef, useState } from "react";
-import { GoogleMap, Marker, useJsApiLoader, Autocomplete, Libraries } from "@react-google-maps/api";
-import { useRouter } from "next/navigation"; // Importar el enrutador para redirigir
+"use client";
 
-const libraries: Libraries = ["places"]; // Definir las librerías como una constante estática
+import React, { useCallback, useRef, useState } from "react";
+import { GoogleMap, Marker, useJsApiLoader, InfoWindow, Autocomplete } from "@react-google-maps/api";
+import Router from "next/router";
 
 interface PostLocation {
   id: string;
@@ -25,11 +25,11 @@ interface MapaInteractivoProps {
 const MapaInteractivo: React.FC<MapaInteractivoProps> = ({ onLocationChange, postLocations = [] }) => {
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
-    libraries, // Usar la constante estática con el tipo correcto
+    libraries: ["places"],
   });
 
-  const router = useRouter(); // Usar el enrutador para redirigir
   const [markerPosition, setMarkerPosition] = useState<{ lat: number; lng: number } | null>(null);
+  const [selectedPost, setSelectedPost] = useState<PostLocation | null>(null);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
 
   const handlePlaceSelect = () => {
@@ -95,18 +95,67 @@ const MapaInteractivo: React.FC<MapaInteractivoProps> = ({ onLocationChange, pos
           <Marker
             key={post.id}
             position={{ lat: post.latitude, lng: post.longitude }}
-            options={{
-              optimized: false, // Deshabilitar optimizaciones que puedan interferir
-            }}
-            onClick={() => {
-              console.log(`Redirigiendo al post con ID: ${post.id}`);
-              router.push(`/thread/${post.id}`); // Redirigir al post
-            }}
+            onClick={() => setSelectedPost(post)}
           />
         ))}
+
+        {/* InfoWindow para mostrar detalles del post */}
+        {/* InfoWindow para mostrar detalles del post */}
+{selectedPost && (
+  <InfoWindow
+    position={{ lat: selectedPost.latitude, lng: selectedPost.longitude }}
+    onCloseClick={() => setSelectedPost(null)}
+  >
+    <div>
+      <h4>{selectedPost.placeName || "Post sin título"}</h4>
+      <p>{selectedPost.address}</p>
+      <button
+        className="text-blue-500 underline"
+        onClick={() => Router.push(`/thread/${selectedPost.id}`)}
+      >
+        Ver post
+      </button>
+    </div>
+  </InfoWindow>
+)}
       </GoogleMap>
     </div>
   );
 };
 
-export default MapaInteractivo;
+interface MapToggleProps {
+  postLocations: {
+    id: string;
+    latitude: number;
+    longitude: number;
+    placeName?: string;
+    address?: string;
+  }[];
+  posts: React.ReactNode; // JSX para la lista de posts
+}
+
+const MapToggle: React.FC<MapToggleProps> = ({ postLocations, posts }) => {
+  const [showMap, setShowMap] = useState(false);
+
+  
+  
+
+
+  return (
+    <div>
+      <button
+        className="bg-blue-500 text-white px-4 py-2 rounded mb-4"
+        onClick={() => setShowMap(!showMap)}
+      >
+        {showMap ? "Ver lista" : "Ver publicaciones en el mapa"}
+      </button>
+      {showMap ? (
+        <MapaInteractivo postLocations={postLocations} />
+      ) : (
+        <div>{posts}</div>
+      )}
+    </div>
+  );
+};
+
+export default MapToggle;
