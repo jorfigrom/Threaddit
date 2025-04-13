@@ -34,8 +34,8 @@ async function RightSidebar() {
         ) : (
           <ul className="mt-4">
             {exploreCommunities.map((community) => (
-              <li key={community.id} className="mb-3">
-                <Link href={`/community/${community.id}`} className="text-light-2 hover:underline">
+              <li key={community.username} className="mb-3">
+                <Link href={`/communities/${community.username}`} className="text-light-2 hover:underline">
                   {community.name}
                 </Link>
               </li>

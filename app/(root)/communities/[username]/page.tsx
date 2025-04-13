@@ -116,7 +116,7 @@ async function Page({ params }: { params: { username: string } }) {
                 </div>
               )}
               {tab.value === "members" && (
-                <MembersTab communityId={community.id} members={community.members} />
+                <MembersTab communityId={community.id} members={community.members ?? []} />
               )}
             </TabsContent>
           ))}
