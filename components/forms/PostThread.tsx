@@ -28,7 +28,10 @@ import { z } from "zod";
 
 import { UploadButton } from "@uploadthing/react";
 import { OurFileRouter } from "@/app/api/uploadthing/core";
+
+
 import MapaInteractivo from "../map/map";
+import MapboxMap from "@/components/map/Mapbox";
 
 interface Props {
     user: {
@@ -179,7 +182,7 @@ function PostThread({ userId }: { userId: string }) {
                     render={() => (
                         <FormItem>
                             <FormLabel className="text-base-semibold text-light-2">Ubicación</FormLabel>
-                            <MapaInteractivo onLocationChange={handleLocationChange} />
+                            <MapboxMap onLocationChange={handleLocationChange} />
                             {/* Mostrar los datos de la ubicación seleccionada */}
                             {form.watch("location") && (
                                 <div className="mt-4 text-light-1">
