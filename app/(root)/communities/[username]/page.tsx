@@ -7,6 +7,7 @@ import { fetchCommunityDetails, fetchCommunityPosts } from "@/lib/actions/commun
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import ThreadCard from "@/components/cards/ThreadCard";
+import CommunityMapToggle from "@/components/map/CommunityMapToggle";
 
 interface Thread {
   _id: string;
@@ -57,6 +58,29 @@ async function Page({ params }: { params: { username: string } }) {
     (a: Thread, b: Thread) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 
+  // Extraer ubicaciones de los posts
+  interface PostLocation {
+    id: string;
+    latitude: number;
+    longitude: number;
+    placeName?: string;
+    address: string;
+    imageThread: string;
+    authorBio?: string;
+  }
+
+  const postLocations: PostLocation[] = sortedPosts
+    .filter((post: Thread) => post.location) // Filtrar posts con ubicación
+    .map((post: Thread): PostLocation => ({
+      id: post._id,
+      latitude: post.location!.latitude,
+      longitude: post.location!.longitude,
+      placeName: post.community?.name,
+      address: post.text,
+      imageThread: post.imageThread,
+      authorBio: post.author?.name,
+    }));
+
   const communityTabs = [
     { label: "Threads", value: "threads", icon: "/assets/more.svg" },
     { label: "Miembros", value: "members", icon: "/assets/members.svg" },
@@ -74,6 +98,11 @@ async function Page({ params }: { params: { username: string } }) {
         membersCount={community.members?.length}
         members={community.members}
       />
+
+      {/* Agregar el componente CommunityMapToggle */}
+      <div className="mt-6">
+        <CommunityMapToggle postLocations={postLocations} />
+      </div>
 
       <div className="mt-9">
         <Tabs defaultValue="threads" className="w-full">
