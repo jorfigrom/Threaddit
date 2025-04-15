@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 
 interface PostLocation {
@@ -11,18 +11,27 @@ interface PostLocation {
   address?: string;
   imageThread?: string;
   authorBio?: string;
-}
-
-interface Props {
-  postLocations: PostLocation[];
+  likes?: number;
+  createdAt?: string;
 }
 
 const MapboxMapaInteractivo = dynamic(() => import("@/components/map/Mapbox"), {
   ssr: false,
 });
 
-const CommunityMapToggle: React.FC<Props> = ({ postLocations }) => {
+const CommunityMapToggle = ({ postLocations }: { postLocations: PostLocation[] }) => {
   const [showMap, setShowMap] = useState(false);
+  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+
+  useEffect(() => {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        setUserLocation({ latitude, longitude });
+      },
+      (err) => console.error("Error obteniendo ubicación:", err)
+    );
+  }, []);
 
   return (
     <div className="mb-6">
@@ -33,7 +42,9 @@ const CommunityMapToggle: React.FC<Props> = ({ postLocations }) => {
         {showMap ? "Ocultar mapa" : "Ver mapa"}
       </button>
 
-      {showMap && <MapboxMapaInteractivo postLocations={postLocations} />}
+      {showMap && (
+        <MapboxMapaInteractivo postLocations={postLocations} userLocation={userLocation} />
+      )}
     </div>
   );
 };

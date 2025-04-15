@@ -30,8 +30,8 @@ import { UploadButton } from "@uploadthing/react";
 import { OurFileRouter } from "@/app/api/uploadthing/core";
 
 
-import MapaInteractivo from "../map/map";
-import MapboxMap from "@/components/map/Mapbox";
+
+import MapboxMap from "@/components/map/MapboxPost";
 
 interface Props {
     user: {
