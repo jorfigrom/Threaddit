@@ -12,7 +12,7 @@ interface PostLocation {
   address?: string;
   imageThread?: string;
   authorBio?: string;
-  likes?: number;
+  likes?: string[];
   createdAt?: string;
 }
 
@@ -52,46 +52,73 @@ const activeButtonStyle = {
   color: "#fff",
 };
 
+const haversineDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+  const toRad = (value: number) => (value * Math.PI) / 180;
+  const R = 6371; // Radio de la Tierra en kilómetros
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c; // Distancia en kilómetros
+};
+
 const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
-  const [mapMode, setMapMode] = useState("Reciente");
+  const [mapMode, setMapMode] = useState("Explorar");
 
-  const filteredLocations = (): PostLocation[] => {
+  const getHighlightedPosts = (): Set<string> => {
     switch (mapMode) {
       case "Popular":
-        return [...postLocations].sort((a, b) => (b.likes ?? 0) - (a.likes ?? 0));
+        return new Set(
+          [...postLocations]
+            .filter((post) => (post.likes?.length ?? 0) > 0) // Filtrar posts con likes > 0
+            .sort((a, b) => (b.likes?.length ?? 0) - (a.likes?.length ?? 0))
+            .slice(0, 3)
+            .map((post) => post.id)
+        );
       case "Reciente":
-        return [...postLocations].sort((a, b) => (b.createdAt ?? "").localeCompare(a.createdAt ?? ""));
-      case "Explorar":
-        return [...postLocations].sort(() => Math.random() - 0.5).slice(0, 10);
+        return new Set(
+          [...postLocations]
+            .filter((post) => post.createdAt) // Filtrar posts con fecha válida
+            .sort((a, b) => new Date(b.createdAt ?? "").getTime() - new Date(a.createdAt ?? "").getTime())
+            .slice(0, 3)
+            .map((post) => post.id)
+        );
       case "Cerca de mí":
-        if (!userLocation) return [];
-        return [...postLocations]
+        if (!userLocation) return new Set();
+        const nearbyPosts = [...postLocations]
           .map((post) => ({
             ...post,
-            distance: Math.sqrt(
-              Math.pow(post.latitude - userLocation.latitude, 2) +
-              Math.pow(post.longitude - userLocation.longitude, 2)
+            distance: haversineDistance(
+              post.latitude,
+              post.longitude,
+              userLocation.latitude,
+              userLocation.longitude
             ),
           }))
-          .sort((a, b) => (a.distance ?? 0) - (b.distance ?? 0))
-          .slice(0, 10);
+          .filter((post) => post.distance <= 2) // Filtrar posts dentro de 2 km
+          .sort((a, b) => (a.distance ?? 0) - (b.distance ?? 0)); // Ordenar por distancia
+
+        console.log("Nearby posts:", nearbyPosts); // Depuración
+        return new Set(nearbyPosts.map((post) => post.id));
       default:
-        return postLocations;
+        return new Set(); // No destacar ningún post en "Explorar"
     }
   };
 
-  // Inicializar mapa una vez
   useEffect(() => {
     mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || "";
 
     mapRef.current = new mapboxgl.Map({
       container: mapContainerRef.current!,
       style: "mapbox://styles/mapbox/streets-v12",
-      center: [-5.9823, 37.3886],
-      zoom: 10,
+      center: userLocation
+        ? [userLocation.longitude, userLocation.latitude]: [0, 0], // Centrar en la ubicación del usuario si está disponible
+      zoom: 2,
     });
 
     return () => {
@@ -99,7 +126,6 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
     };
   }, []);
 
-  // Actualizar marcadores cuando cambia el modo
   useEffect(() => {
     if (!mapRef.current) return;
 
@@ -107,10 +133,14 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
     markersRef.current.forEach((marker) => marker.remove());
     markersRef.current = [];
 
-    const postsToShow = filteredLocations();
+    const highlightedPosts = getHighlightedPosts();
 
-    postsToShow.forEach((post) => {
-      const marker = new mapboxgl.Marker({ color: "#3b82f6" })
+    postLocations.forEach((post) => {
+      const isHighlighted = highlightedPosts.has(post.id);
+
+      const marker = new mapboxgl.Marker({
+        color: isHighlighted ? "#f97316" : "#3b82f6", // Naranja para destacados, azul para el resto
+      })
         .setLngLat([post.longitude, post.latitude])
         .setPopup(
           new mapboxgl.Popup().setHTML(`
@@ -122,6 +152,7 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
                   ? `<img src="${post.imageThread}" alt="Imagen" style="width: 100%; border-radius: 8px; margin-bottom: 8px;" />`
                   : ""
               }
+              <p style="font-size: 12px; color: black;">Likes: ${post.likes?.length ?? 0}</p>
             </div>
           `)
         )
@@ -131,9 +162,9 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
     });
 
     // Centrar mapa si hay posts
-    if (postsToShow.length > 0) {
-      const avgLng = postsToShow.reduce((sum, p) => sum + p.longitude, 0) / postsToShow.length;
-      const avgLat = postsToShow.reduce((sum, p) => sum + p.latitude, 0) / postsToShow.length;
+    if (postLocations.length > 0) {
+      const avgLng = postLocations.reduce((sum, p) => sum + p.longitude, 0) / postLocations.length;
+      const avgLat = postLocations.reduce((sum, p) => sum + p.latitude, 0) / postLocations.length;
       mapRef.current.flyTo({ center: [avgLng, avgLat], zoom: 11 });
     }
   }, [mapMode, postLocations, userLocation]);
@@ -141,7 +172,7 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
   return (
     <div style={{ position: "relative", width: "100%", height: "500px" }}>
       <div style={menuStyle}>
-        {["Reciente", "Popular", "Explorar", "Cerca de mí"].map((mode) => (
+        {["Explorar", "Reciente", "Popular", "Cerca de mí"].map((mode) => (
           <button
             key={mode}
             onClick={() => setMapMode(mode)}

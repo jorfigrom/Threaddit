@@ -67,6 +67,7 @@ async function Page({ params }: { params: { username: string } }) {
     address: string;
     imageThread: string;
     authorBio?: string;
+    likes?: string[];
   }
 
   const postLocations: PostLocation[] = sortedPosts
@@ -79,6 +80,7 @@ async function Page({ params }: { params: { username: string } }) {
       address: post.text,
       imageThread: post.imageThread,
       authorBio: post.author?.name,
+      likes: post.likes,
     }));
 
   const communityTabs = [

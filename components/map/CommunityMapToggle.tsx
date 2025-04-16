@@ -11,7 +11,7 @@ interface PostLocation {
   address?: string;
   imageThread?: string;
   authorBio?: string;
-  likes?: number;
+  likes?: string[];
   createdAt?: string;
 }
 
