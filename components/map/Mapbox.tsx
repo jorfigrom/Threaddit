@@ -69,6 +69,7 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const [mapMode, setMapMode] = useState("Explorar");
+  const [userLocationState, setUserLocation] = useState(userLocation);
 
   const getHighlightedPosts = (): Set<string> => {
     switch (mapMode) {
@@ -84,23 +85,26 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
         return new Set(
           [...postLocations]
             .filter((post) => post.createdAt) // Filtrar posts con fecha válida
-            .sort((a, b) => new Date(b.createdAt ?? "").getTime() - new Date(a.createdAt ?? "").getTime())
-            .slice(0, 3)
+            .sort(
+              (a, b) =>
+                new Date(b.createdAt ?? "").getTime() - new Date(a.createdAt ?? "").getTime()
+            ) // Ordenar por fecha descendente
+            .slice(0, 3) // Seleccionar los 3 más recientes
             .map((post) => post.id)
         );
       case "Cerca de mí":
-        if (!userLocation) return new Set();
+        if (!userLocationState) return new Set();
         const nearbyPosts = [...postLocations]
           .map((post) => ({
             ...post,
             distance: haversineDistance(
               post.latitude,
               post.longitude,
-              userLocation.latitude,
-              userLocation.longitude
+              userLocationState.latitude,
+              userLocationState.longitude
             ),
           }))
-          .filter((post) => post.distance <= 2) // Filtrar posts dentro de 2 km
+          .filter((post) => post.distance <= 10) // Cambiar el radio a 10 km
           .sort((a, b) => (a.distance ?? 0) - (b.distance ?? 0)); // Ordenar por distancia
 
         console.log("Nearby posts:", nearbyPosts); // Depuración
@@ -116,14 +120,48 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
     mapRef.current = new mapboxgl.Map({
       container: mapContainerRef.current!,
       style: "mapbox://styles/mapbox/streets-v12",
-      center: userLocation
-        ? [userLocation.longitude, userLocation.latitude]: [0, 0], // Centrar en la ubicación del usuario si está disponible
+      center: userLocationState
+        ? [userLocationState.longitude, userLocationState.latitude]: [0, 0], // Centrar en la ubicación del usuario si está disponible
       zoom: 2,
     });
 
     return () => {
       mapRef.current?.remove();
     };
+  }, []);
+
+  useEffect(() => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          console.log("User location:", position.coords);
+          const userCoords = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          };
+          setUserLocation(userCoords);
+
+          // Agregar marcador morado para la ubicación del usuario
+          if (mapRef.current) {
+            new mapboxgl.Marker({ color: "#800080" }) // Morado
+              .setLngLat([userCoords.longitude, userCoords.latitude])
+              .setPopup(
+                new mapboxgl.Popup().setHTML(`
+                  <div style="font-size: 12px; color: black;">
+                    <strong>Tu ubicación</strong>
+                  </div>
+                `)
+              )
+              .addTo(mapRef.current);
+          }
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+        }
+      );
+    } else {
+      console.error("Geolocation is not available in this browser.");
+    }
   }, []);
 
   useEffect(() => {
@@ -167,7 +205,10 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
       const avgLat = postLocations.reduce((sum, p) => sum + p.latitude, 0) / postLocations.length;
       mapRef.current.flyTo({ center: [avgLng, avgLat], zoom: 11 });
     }
-  }, [mapMode, postLocations, userLocation]);
+  }, [mapMode, postLocations, userLocationState]);
+
+
+  console.log("-------------", postLocations, "--------------------",userLocationState); // Depuración
 
   return (
     <div style={{ position: "relative", width: "100%", height: "500px" }}>
