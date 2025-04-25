@@ -21,7 +21,7 @@ interface Result {
       id: string;
       name: string;
       image: string;
-    } | null;
+    } ;
     imageThread: string;
     createdAt: string;
     children: {

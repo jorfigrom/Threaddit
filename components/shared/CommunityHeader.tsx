@@ -10,6 +10,7 @@ const CommunityHeader = ({
   imgUrl,
   bio,
   membersCount,
+  createdBy,
   members, // Lista de miembros
 }: {
   communityId: string;
@@ -19,8 +20,13 @@ const CommunityHeader = ({
   imgUrl: string;
   bio: string;
   membersCount: number;
+  createdBy: string;
   members: { id: string }[]; // Lista de miembros con sus IDs
 }) => {
+
+console.log(communityId, "comunidad")
+console.log(authUserId, "usuario")
+
   return (
     <div className="flex w-full flex-col justify-start">
       <div className="flex items-center justify-between">
@@ -40,7 +46,7 @@ const CommunityHeader = ({
           </div>
         </div>
 
-        {communityId === authUserId ? (
+        {communityId.includes(authUserId) ? (
           <Link href={`/communities/${username}/edit`}>
             <div className="flex cursor-pointer gap-3 rounded-lg bg-dark-3 px-4 py-2">
               <Image

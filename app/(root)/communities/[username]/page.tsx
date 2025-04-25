@@ -90,6 +90,9 @@ async function Page({ params }: { params: { username: string } }) {
     { label: "Miembros", value: "members", icon: "/assets/members.svg" },
   ];
 
+  console.log(user, "currentUser");
+  console.log(community.id)
+
   return (
     <section>
       <CommunityHeader
@@ -100,6 +103,7 @@ async function Page({ params }: { params: { username: string } }) {
         imgUrl={community.image}
         bio={community.bio}
         membersCount={community.members?.length}
+        createdBy={community.createdBy}
         members={community.members}
       />
 
