@@ -8,6 +8,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import ThreadCard from "@/components/cards/ThreadCard";
 import CommunityMapToggle from "@/components/map/CommunityMapToggle";
+import Searchbar from "@/components/shared/PostSearchBar";
 
 interface Thread {
   _id: string;
@@ -35,26 +36,38 @@ interface Thread {
   location?: {
     latitude: number;
     longitude: number;
-  }; // Added location property
+  };
 }
 
-async function Page({ params }: { params: { username: string } }) {
+async function Page({ params, searchParams }: { 
+  params: { username: string };
+  searchParams: { bio?: string };
+}) {
   const user = await currentUser();
   if (!user) return null;
 
-  const { username } = await params;
+  const { username } = params;
+  const bioQuery = searchParams.bio?.toLowerCase() || "";
 
   // Obtener detalles de la comunidad
   const community = await fetchCommunityDetails(username, user.id);
   if (!community) redirect("/404");
 
-  // Obtener y ordenar los threads de la comunidad (de más reciente a más antiguo)
+  // Obtener y ordenar los threads de la comunidad
   const communityData = await fetchCommunityPosts(community.username);
   const communityPosts = Array.isArray(communityData)
     ? communityData
     : communityData.threads || [];
 
-  const sortedPosts = communityPosts.sort(
+  // Filtrar posts por biografía del autor o contenido del post si hay término de búsqueda
+  const filteredPosts = bioQuery
+    ? communityPosts.filter((post: Thread) =>
+        post.author?.name?.toLowerCase().includes(bioQuery) ||
+        post.text.toLowerCase().includes(bioQuery)
+      )
+    : communityPosts;
+
+  const sortedPosts = filteredPosts.sort(
     (a: Thread, b: Thread) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 
@@ -72,9 +85,9 @@ async function Page({ params }: { params: { username: string } }) {
   }
 
   const postLocations: PostLocation[] = sortedPosts
-    .filter((post: Thread) => post.location) // Filtrar posts con ubicación
+    .filter((post: Thread) => post.location)
     .map((post: Thread): PostLocation => ({
-      id: post._id,
+      id: post._id.toString(),
       latitude: post.location!.latitude,
       longitude: post.location!.longitude,
       placeName: post.community?.name,
@@ -90,8 +103,7 @@ async function Page({ params }: { params: { username: string } }) {
     { label: "Miembros", value: "members", icon: "/assets/members.svg" },
   ];
 
-  console.log(user, "currentUser");
-  console.log(community.id)
+
 
   return (
     <section>
@@ -104,10 +116,18 @@ async function Page({ params }: { params: { username: string } }) {
         bio={community.bio}
         membersCount={community.members?.length}
         createdBy={community.createdBy}
-        members={community.members}
+        members={community.members || []}
       />
 
-      {/* Agregar el componente CommunityMapToggle */}
+      {/* Barra de búsqueda por biografía o contenido */}
+      <div className="mt-4">
+        <Searchbar 
+          routeType={`http://localhost:3000/communities/${username}`}
+          placeholder="Buscar por biografía o contenido"
+        />
+      </div>
+
+      {/* Componente CommunityMapToggle */}
       <div className="mt-6">
         <CommunityMapToggle postLocations={postLocations} />
       </div>
@@ -120,7 +140,7 @@ async function Page({ params }: { params: { username: string } }) {
                 <Image src={tab.icon} alt={tab.label} width={24} height={24} className="object-contain" />
                 <p className="max-sm:hidden">{tab.label}</p>
                 <p className="ml-1 rounded-sm bg-light-4 px-2 py-1 !text-tiny-medium text-light-2">
-                  {tab.label === "Threads" ? communityPosts.length : community.members?.length}
+                  {tab.label === "Threads" ? sortedPosts.length : community.members?.length}
                 </p>
               </TabsTrigger>
             ))}
@@ -133,8 +153,8 @@ async function Page({ params }: { params: { username: string } }) {
                   {sortedPosts.length > 0 ? (
                     sortedPosts.map((post: Thread) => (
                       <ThreadCard
-                        key={post._id}
-                        id={post._id}
+                        key={post._id.toString()}
+                        id={post._id.toString()}
                         currentUserId={user.id}
                         parentId={post.parentId}
                         content={post.text}
@@ -144,11 +164,11 @@ async function Page({ params }: { params: { username: string } }) {
                         createdAt={post.createdAt}
                         comments={post.comments || []}
                         likes={post.likes || []}
-                        location={post.location || {}} // Pasar la ubicación al componente
+                        location={post.location || {}}
                       />
                     ))
                   ) : (
-                    <p>No hay threads en esta comunidad.</p>
+                    <p>{bioQuery ? "No hay posts que coincidan con tu búsqueda." : "No hay threads en esta comunidad."}</p>
                   )}
                 </div>
               )}

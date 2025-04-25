@@ -24,8 +24,6 @@ const CommunityHeader = ({
   members: { id: string }[]; // Lista de miembros con sus IDs
 }) => {
 
-console.log(communityId, "comunidad")
-console.log(authUserId, "usuario")
 
   return (
     <div className="flex w-full flex-col justify-start">
@@ -60,11 +58,11 @@ console.log(authUserId, "usuario")
           </Link>
         ) : (
           <CommunityMembershipButton
-  communityId={communityId}
-  userId={authUserId}
-  members={members} // Pasar la lista de miembros
-  initialMembersCount={membersCount}
-/>
+            communityId={communityId}
+            userId={authUserId}
+            members={members} // Pasar la lista de miembros
+            initialMembersCount={membersCount}
+          />
         )}
       </div>
 
