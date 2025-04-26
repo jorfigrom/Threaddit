@@ -2,20 +2,46 @@ import { currentUser } from "@clerk/nextjs/server";
 import { fetchCommunities } from "@/lib/actions/community.actions";
 import { fetchUsers } from "@/lib/actions/user.actions";
 import Link from "next/link";
+import Image from "next/image"; // Importar el componente Image de Next.js
 
 async function RightSidebar() {
   const user = await currentUser();
   if (!user) return null;
 
-  // Obtener comunidades
+  // Obtener todas las comunidades
   const { communities } = await fetchCommunities({});
+
+  // Comunidades en las que el usuario ya es miembro
+  const userCommunities = communities.filter((community: { members?: any[] }) =>
+    community.members?.some((member: any) => member.id === user.id)
+  );
+
+  // Extraer palabras clave de los nombres de las comunidades del usuario
+  const STOPWORDS = ["de", "en", "la", "el", "los", "las", "y", "a", "un", "una", "con", "por", "para", "sin", "sobre"];
+  const uniqueKeywords = userCommunities
+    .flatMap((community) => community.name.toLowerCase().split(/\s+/))
+    .filter((word, index, self) => 
+      word.length > 2 && 
+      !STOPWORDS.includes(word) && 
+      self.indexOf(word) === index
+    );
+
+  // Filtrar comunidades similares basadas en palabras clave
   const exploreCommunities = communities
-    .filter(
-      (community: { createdBy?: string; members?: any[] }) =>
-        community.createdBy !== user.id &&
-        !community.members?.some((member: any) => member.id === user.id)
-    )
-    .slice(0, 3); // Mostrar solo 3 comunidades
+    .filter((community: { name: string; createdBy?: string; members?: any[] }) => {
+      const isMember = community.members?.some((member: any) => member.id === user.id);
+      const isCreator = community.createdBy === user.id;
+      if (isMember || isCreator) return false;
+
+      const communityNameWords = community.name
+        .toLowerCase()
+        .split(/\s+/)
+        .filter(word => word.length > 2 && !STOPWORDS.includes(word));
+
+      const hasCommonKeyword = communityNameWords.some((word) => uniqueKeywords.includes(word));
+      return hasCommonKeyword;
+    })
+    .slice(0, 3);
 
   // Obtener usuarios sugeridos
   const { users } = await fetchUsers({
@@ -34,7 +60,15 @@ async function RightSidebar() {
         ) : (
           <ul className="mt-4">
             {exploreCommunities.map((community) => (
-              <li key={community.username} className="mb-3">
+              <li key={community.username} className="mb-3 flex items-center gap-3">
+                {/* Mostrar la imagen de la comunidad */}
+                <Image
+                  src={community.image} // Asegúrate de que `community.image` contenga la URL de la imagen
+                  alt={community.name}
+                  width={40}
+                  height={40}
+                  className="rounded-full"
+                />
                 <Link href={`/communities/${community.username}`} className="text-light-2 hover:underline">
                   {community.name}
                 </Link>
