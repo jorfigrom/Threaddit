@@ -70,6 +70,7 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const [mapMode, setMapMode] = useState("Explorar");
   const [userLocationState, setUserLocation] = useState(userLocation);
+  const [similarPosts, setSimilarPosts] = useState<PostLocation[] | null>(null);
 
   const getHighlightedPosts = (): Set<string> => {
     switch (mapMode) {
@@ -114,6 +115,30 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
     }
   };
 
+  const findSimilarPosts = (post: PostLocation) => {
+    if (!post || !post.address) return [];
+
+    // Convertir la dirección del post actual a minúsculas y eliminar caracteres especiales
+    const normalizedAddress = post.address
+      .toLowerCase()
+      .replace(/[^\w\s]/g, ""); // Eliminar caracteres especiales
+
+    // Buscar posts que contengan palabras clave de la dirección en su texto completo
+    return postLocations.filter((p) => {
+      if (!p.address || p.id === post.id) return false; // Excluir el post actual y posts sin dirección
+
+      // Normalizar la dirección del post a comparar
+      const normalizedOtherAddress = p.address
+        .toLowerCase()
+        .replace(/[^\w\s]/g, ""); // Eliminar caracteres especiales
+
+      // Verificar si alguna palabra de la dirección del post actual está en la dirección del otro post
+      return normalizedAddress.split(" ").some((keyword) =>
+        normalizedOtherAddress.includes(keyword)
+      );
+    });
+  };
+
   useEffect(() => {
     mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || "";
 
@@ -121,7 +146,7 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
       container: mapContainerRef.current!,
       style: "mapbox://styles/mapbox/streets-v12",
       center: userLocationState
-        ? [userLocationState.longitude, userLocationState.latitude]: [0, 0], // Centrar en la ubicación del usuario si está disponible
+        ? [userLocationState.longitude, userLocationState.latitude] : [0, 0], // Centrar en la ubicación del usuario si está disponible
       zoom: 2,
     });
 
@@ -176,6 +201,8 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
     postLocations.forEach((post) => {
       const isHighlighted = highlightedPosts.has(post.id);
 
+      console.log("-----------------------------------", post.address)
+
       const marker = new mapboxgl.Marker({
         color: isHighlighted ? "#f97316" : "#3b82f6", // Naranja para destacados, azul para el resto
       })
@@ -185,12 +212,17 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
             <div style="max-width: 200px; background-color: white; padding: 10px; border-radius: 8px; border: 1px solid #ccc;">
               <h3 style="font-size: 14px; font-weight: bold; margin-bottom: 8px; color: black;">${post.authorBio || "Anónimo"}</h3>
               <p style="font-size: 12px; margin-bottom: 8px; color: black;">${post.address || "Sin dirección"}</p>
-              ${
-                post.imageThread
-                  ? `<img src="${post.imageThread}" alt="Imagen" style="width: 100%; border-radius: 8px; margin-bottom: 8px;" />`
-                  : ""
-              }
+              ${post.imageThread
+              ? `<img src="${post.imageThread}" alt="Imagen" style="width: 100%; border-radius: 8px; margin-bottom: 8px;" />`
+              : ""
+            }
               <p style="font-size: 12px; color: black;">Likes: ${post.likes?.length ?? 0}</p>
+              <button 
+                style="margin-top: 8px; padding: 5px 10px; font-size: 12px; background-color: #3887be; color: white; border: none; border-radius: 4px; cursor: pointer;"
+                onclick="window.showSimilarPosts('${post.id}')"
+              >
+                Ver similares
+              </button>
             </div>
           `)
         )
@@ -207,8 +239,18 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
     }
   }, [mapMode, postLocations, userLocationState]);
 
+  // Exponer la función para mostrar posts similares
+  useEffect(() => {
+    (window as any).showSimilarPosts = (postId: string) => {
+      const post = postLocations.find((p) => p.id === postId);
+      if (post) {
+        const similar = findSimilarPosts(post);
+        setSimilarPosts(similar);
+      }
+    };
+  }, [postLocations]);
 
-  console.log("-------------", postLocations, "--------------------",userLocationState); // Depuración
+  console.log("-------------", postLocations, "--------------------", userLocationState); // Depuración
 
   return (
     <div style={{ position: "relative", width: "100%", height: "500px" }}>
@@ -227,6 +269,62 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
           </button>
         ))}
       </div>
+      {similarPosts && (
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "300px",
+            height: "100%",
+            backgroundColor: "#fff",
+            zIndex: 2,
+            overflowY: "auto",
+            borderRight: "1px solid #ccc",
+            padding: "10px",
+          }}
+        >
+          <button
+            onClick={() => setSimilarPosts(null)}
+            style={{
+              display: "block",
+              marginBottom: "10px",
+              padding: "5px 10px",
+              backgroundColor: "#f44336",
+              color: "#fff",
+              border: "none",
+              borderRadius: "4px",
+              cursor: "pointer",
+            }}
+          >
+            Cerrar
+          </button>
+          <h3>Posts similares</h3>
+          <ul style={{ listStyle: "none", padding: 0 }}>
+            {similarPosts.map((post) => (
+              <li
+                key={post.id}
+                style={{
+                  marginBottom: "10px",
+                  padding: "10px",
+                  border: "1px solid #ccc",
+                  borderRadius: "4px",
+                  backgroundColor: "#f9f9f9",
+                  color: "#333", // Color de texto oscuro
+                }}
+              >
+                <h4 style={{ margin: "0 0 5px 0", fontSize: "14px", color: "#222" }}>
+                  {post.authorBio || "Anónimo"}
+                </h4>
+                <p style={{ margin: 0, fontSize: "12px", color: "#555" }}>
+                  {post.address || "Sin dirección"}
+                </p>
+              </li>
+            ))}
+          </ul>
+
+        </div>
+      )}
       <div ref={mapContainerRef} style={{ width: "100%", height: "100%" }} />
     </div>
   );
