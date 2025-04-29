@@ -22,23 +22,27 @@ async function Page({
   if (!userInfo?.onboarded) redirect("/onboarding");
 
   const searchString = searchParams.q?.toLowerCase() || "";
+  const filter = searchParams.filter || "all";
 
   // Buscar comunidades relacionadas
   const { communities } = await fetchCommunities({});
-  const filteredCommunities = communities.filter((community: { name: string }) =>
-    community.name.toLowerCase().includes(searchString)
-  );
+  const filteredCommunities =
+    filter === "all" || filter === "communities"
+      ? communities.filter((community: { name: string }) =>
+          community.name.toLowerCase().includes(searchString)
+        )
+      : [];
 
   // Buscar posts relacionados
-  const { posts } = await fetchPosts(1,30);
-  const filteredPosts = posts.filter(
-    (post: {
-      text: string;
-      author: { name: string };
-    }) =>
-      post.text.toLowerCase().includes(searchString) ||
-      post.author?.name.toLowerCase().includes(searchString)
-  );
+  const { posts } = await fetchPosts(1, 30);
+  const filteredPosts =
+    filter === "all" || filter === "posts"
+      ? posts.filter(
+          (post: { text: string; author: { name: string } }) =>
+            post.text.toLowerCase().includes(searchString) ||
+            post.author?.name.toLowerCase().includes(searchString)
+        )
+      : [];
 
   // Buscar usuarios relacionados
   const result = await fetchUsers({
@@ -47,6 +51,8 @@ async function Page({
     pageNumber: searchParams?.page ? +searchParams.page : 1,
     pageSize: 25,
   });
+  const filteredUsers =
+    filter === "all" || filter === "users" ? result.users : [];
 
   return (
     <section>
@@ -61,8 +67,8 @@ async function Page({
             <h2 className="text-heading4-medium text-light-1 mb-4">
               Comunidades relacionadas
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredCommunities.map((community) => (
+            <div className="flex flex-wrap gap-6">
+              {filteredCommunities.slice(0, 4).map((community) => (
                 <CommunityCard
                   key={community.id}
                   id={community.id}
@@ -84,7 +90,7 @@ async function Page({
               Posts relacionados
             </h2>
             <div className="flex flex-col gap-6">
-              {filteredPosts.map((post) => (
+              {filteredPosts.slice(0, 3).map((post) => (
                 <ThreadCard
                   key={post._id}
                   id={post._id}
@@ -105,13 +111,13 @@ async function Page({
         )}
 
         {/* Mostrar usuarios relacionados */}
-        {result.users.length > 0 && (
+        {filteredUsers.length > 0 && (
           <div>
             <h2 className="text-heading4-medium text-light-1 mb-4">
               Usuarios relacionados
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {result.users.map((person) => (
+              {filteredUsers.slice(0, 3).map((person) => (
                 <UserCard
                   key={person.id}
                   id={person.id}
@@ -128,7 +134,7 @@ async function Page({
         {/* Mostrar mensaje si no hay resultados */}
         {filteredCommunities.length === 0 &&
           filteredPosts.length === 0 &&
-          result.users.length === 0 && (
+          filteredUsers.length === 0 && (
             <p className="no-result">No hay resultados</p>
           )}
       </div>
