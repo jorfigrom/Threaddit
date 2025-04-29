@@ -81,19 +81,8 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
         );
       case "Popular":
         return [...postLocations].sort((a, b) => (b.likes?.length ?? 0) - (a.likes?.length ?? 0));
-      case "Cerca de mí":
-        if (!userLocationState) return [];
-        return postLocations.filter((post) => {
-          const distance = haversineDistance(
-            userLocationState.latitude,
-            userLocationState.longitude,
-            post.latitude,
-            post.longitude
-          );
-          return distance <= 50; // Mostrar posts a menos de 50 km
-        });
       default:
-        return postLocations; // "Explorar" muestra todos los posts
+        return postLocations; // "Explorar" y "Cerca de mí" muestran todos los posts
     }
   };
 
@@ -203,7 +192,18 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
           );
           return distanceA - distanceB;
         });
-        sortedByDistance.slice(0, 3).forEach((post) => highlightedPosts.add(post.id));
+        sortedByDistance
+          .filter((post) => {
+            const distance = haversineDistance(
+              userLocationState.latitude,
+              userLocationState.longitude,
+              post.latitude,
+              post.longitude
+            );
+            return distance <= 50; // Solo resaltar posts a menos de 50 km
+          })
+          .slice(0, 3)
+          .forEach((post) => highlightedPosts.add(post.id));
       }
     } else if (mapMode === "Popular") {
       // Resaltar los 3 posts con más likes que tengan >0 likes
@@ -323,7 +323,7 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
           >
             Cerrar
           </button>
-          <h3>Posts similares</h3>
+          <h3 style={{color: "#333"}}>Posts similares</h3>
           <ul style={{ listStyle: "none", padding: 0 }}>
             {similarPosts.map((post) => (
               <li
