@@ -67,72 +67,50 @@ const haversineDistance = (lat1: number, lon1: number, lat2: number, lon2: numbe
 const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
-  const markersRef = useRef<mapboxgl.Marker[]>([]);
+  const markersRef = useRef<{ marker: mapboxgl.Marker; postId: string }[]>([]);
   const [mapMode, setMapMode] = useState("Explorar");
   const [userLocationState, setUserLocation] = useState(userLocation);
   const [similarPosts, setSimilarPosts] = useState<PostLocation[] | null>(null);
 
-  const getHighlightedPosts = (): Set<string> => {
+  // Filtrar los posts según el modo seleccionado
+  const getFilteredPosts = () => {
     switch (mapMode) {
-      case "Popular":
-        return new Set(
-          [...postLocations]
-            .filter((post) => (post.likes?.length ?? 0) > 0) // Filtrar posts con likes > 0
-            .sort((a, b) => (b.likes?.length ?? 0) - (a.likes?.length ?? 0))
-            .slice(0, 3)
-            .map((post) => post.id)
-        );
       case "Reciente":
-        return new Set(
-          [...postLocations]
-            .filter((post) => post.createdAt) // Filtrar posts con fecha válida
-            .sort(
-              (a, b) =>
-                new Date(b.createdAt ?? "").getTime() - new Date(a.createdAt ?? "").getTime()
-            ) // Ordenar por fecha descendente
-            .slice(0, 3) // Seleccionar los 3 más recientes
-            .map((post) => post.id)
+        return [...postLocations].sort(
+          (a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime()
         );
+      case "Popular":
+        return [...postLocations].sort((a, b) => (b.likes?.length ?? 0) - (a.likes?.length ?? 0));
       case "Cerca de mí":
-        if (!userLocationState) return new Set();
-        const nearbyPosts = [...postLocations]
-          .map((post) => ({
-            ...post,
-            distance: haversineDistance(
-              post.latitude,
-              post.longitude,
-              userLocationState.latitude,
-              userLocationState.longitude
-            ),
-          }))
-          .filter((post) => post.distance <= 10) // Cambiar el radio a 10 km
-          .sort((a, b) => (a.distance ?? 0) - (b.distance ?? 0)); // Ordenar por distancia
-
-        console.log("Nearby posts:", nearbyPosts); // Depuración
-        return new Set(nearbyPosts.map((post) => post.id));
+        if (!userLocationState) return [];
+        return postLocations.filter((post) => {
+          const distance = haversineDistance(
+            userLocationState.latitude,
+            userLocationState.longitude,
+            post.latitude,
+            post.longitude
+          );
+          return distance <= 50; // Mostrar posts a menos de 50 km
+        });
       default:
-        return new Set(); // No destacar ningún post en "Explorar"
+        return postLocations; // "Explorar" muestra todos los posts
     }
   };
 
   const findSimilarPosts = (post: PostLocation) => {
     if (!post || !post.address) return [];
 
-    // Convertir la dirección del post actual a minúsculas y eliminar caracteres especiales
     const normalizedAddress = post.address
       .toLowerCase()
       .replace(/[^\w\s]/g, ""); // Eliminar caracteres especiales
 
-    // Buscar posts que contengan palabras clave de la dirección en su texto completo
     return postLocations.filter((p) => {
-      if (!p.address || p.id === post.id) return false; // Excluir el post actual y posts sin dirección
+      if (!p.address || p.id === post.id) return false;
 
-      // Normalizar la dirección del post a comparar
       const normalizedOtherAddress = p.address
         .toLowerCase()
-        .replace(/[^\w\s]/g, ""); // Eliminar caracteres especiales
+        .replace(/[^\w\s]/g, "");
 
-      // Verificar si alguna palabra de la dirección del post actual está en la dirección del otro post
       return normalizedAddress.split(" ").some((keyword) =>
         normalizedOtherAddress.includes(keyword)
       );
@@ -146,7 +124,8 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
       container: mapContainerRef.current!,
       style: "mapbox://styles/mapbox/streets-v12",
       center: userLocationState
-        ? [userLocationState.longitude, userLocationState.latitude] : [0, 0], // Centrar en la ubicación del usuario si está disponible
+        ? [userLocationState.longitude, userLocationState.latitude]
+        : [0, 0],
       zoom: 2,
     });
 
@@ -166,9 +145,8 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
           };
           setUserLocation(userCoords);
 
-          // Agregar marcador morado para la ubicación del usuario
           if (mapRef.current) {
-            new mapboxgl.Marker({ color: "#800080" }) // Morado
+            new mapboxgl.Marker({ color: "#800080" })
               .setLngLat([userCoords.longitude, userCoords.latitude])
               .setPopup(
                 new mapboxgl.Popup().setHTML(`
@@ -192,54 +170,102 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
   useEffect(() => {
     if (!mapRef.current) return;
 
-    // Eliminar marcadores anteriores
-    markersRef.current.forEach((marker) => marker.remove());
+    // Eliminar marcadores existentes
+    markersRef.current.forEach(({ marker }) => marker.remove());
     markersRef.current = [];
 
-    const highlightedPosts = getHighlightedPosts();
+    // Obtener los posts filtrados
+    const filteredPosts = getFilteredPosts();
 
-    postLocations.forEach((post) => {
+    // Determinar los posts destacados según el filtro
+    const highlightedPosts = new Set<string>();
+    if (mapMode === "Reciente") {
+      // Resaltar los 3 posts más recientes
+      const sortedByDate = [...filteredPosts].sort(
+        (a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime()
+      );
+      sortedByDate.slice(0, 3).forEach((post) => highlightedPosts.add(post.id));
+    } else if (mapMode === "Cerca de mí") {
+      // Resaltar los 3 posts más cercanos
+      if (userLocationState) {
+        const sortedByDistance = [...filteredPosts].sort((a, b) => {
+          const distanceA = haversineDistance(
+            userLocationState.latitude,
+            userLocationState.longitude,
+            a.latitude,
+            a.longitude
+          );
+          const distanceB = haversineDistance(
+            userLocationState.latitude,
+            userLocationState.longitude,
+            b.latitude,
+            b.longitude
+          );
+          return distanceA - distanceB;
+        });
+        sortedByDistance.slice(0, 3).forEach((post) => highlightedPosts.add(post.id));
+      }
+    } else if (mapMode === "Popular") {
+      // Resaltar los 3 posts con más likes que tengan >0 likes
+      const sortedByLikes = [...filteredPosts]
+        .filter((post) => (post.likes?.length ?? 0) > 0) // Filtrar posts con más de 0 likes
+        .sort((a, b) => (b.likes?.length ?? 0) - (a.likes?.length ?? 0));
+      sortedByLikes.slice(0, 3).forEach((post) => highlightedPosts.add(post.id));
+    }
+
+    // Agregar marcadores para los posts filtrados
+    filteredPosts.forEach((post) => {
       const isHighlighted = highlightedPosts.has(post.id);
 
-      console.log("-----------------------------------", post.address)
+      const popup = new mapboxgl.Popup().setHTML(`
+        <div style="max-width: 200px; background-color: white; padding: 10px; border-radius: 8px; border: 1px solid #ccc;">
+          <h3 style="font-size: 14px; font-weight: bold; margin-bottom: 8px; color: black;">${post.authorBio || "Anónimo"}</h3>
+          <p style="font-size: 12px; margin-bottom: 8px; color: black;">${post.address || "Sin dirección"}</p>
+          ${post.imageThread
+            ? `<img src="${post.imageThread}" alt="Imagen" style="width: 100%; border-radius: 8px; margin-bottom: 8px;" />`
+            : ""
+          }
+          <p style="font-size: 12px; color: black;">Likes: ${post.likes?.length ?? 0}</p>
+          <button 
+            style="margin-top: 8px; padding: 5px 10px; font-size: 12px; background-color: #3887be; color: white; border: none; border-radius: 4px; cursor: pointer;"
+            onclick="window.showSimilarPosts('${post.id}')"
+          >
+            Ver similares
+          </button>
+        </div>
+      `);
 
       const marker = new mapboxgl.Marker({
         color: isHighlighted ? "#f97316" : "#3b82f6", // Naranja para destacados, azul para el resto
       })
         .setLngLat([post.longitude, post.latitude])
-        .setPopup(
-          new mapboxgl.Popup().setHTML(`
-            <div style="max-width: 200px; background-color: white; padding: 10px; border-radius: 8px; border: 1px solid #ccc;">
-              <h3 style="font-size: 14px; font-weight: bold; margin-bottom: 8px; color: black;">${post.authorBio || "Anónimo"}</h3>
-              <p style="font-size: 12px; margin-bottom: 8px; color: black;">${post.address || "Sin dirección"}</p>
-              ${post.imageThread
-              ? `<img src="${post.imageThread}" alt="Imagen" style="width: 100%; border-radius: 8px; margin-bottom: 8px;" />`
-              : ""
-            }
-              <p style="font-size: 12px; color: black;">Likes: ${post.likes?.length ?? 0}</p>
-              <button 
-                style="margin-top: 8px; padding: 5px 10px; font-size: 12px; background-color: #3887be; color: white; border: none; border-radius: 4px; cursor: pointer;"
-                onclick="window.showSimilarPosts('${post.id}')"
-              >
-                Ver similares
-              </button>
-            </div>
-          `)
-        )
+        .setPopup(popup)
         .addTo(mapRef.current!);
 
-      markersRef.current.push(marker);
+      markersRef.current.push({ marker, postId: post.id });
     });
 
-    // Centrar mapa si hay posts
-    if (postLocations.length > 0) {
-      const avgLng = postLocations.reduce((sum, p) => sum + p.longitude, 0) / postLocations.length;
-      const avgLat = postLocations.reduce((sum, p) => sum + p.latitude, 0) / postLocations.length;
+    // Centrar el mapa si hay posts
+    if (filteredPosts.length > 0) {
+      const avgLng = filteredPosts.reduce((sum, p) => sum + p.longitude, 0) / filteredPosts.length;
+      const avgLat = filteredPosts.reduce((sum, p) => sum + p.latitude, 0) / filteredPosts.length;
       mapRef.current.flyTo({ center: [avgLng, avgLat], zoom: 9 });
     }
-  }, [mapMode, postLocations, userLocationState]);
+  }, [postLocations, mapMode, userLocationState]);
 
-  // Exponer la función para mostrar posts similares
+  const handleSimilarPostClick = (postId: string) => {
+    setSimilarPosts(null); // Cerrar el listado de posts similares
+
+    // Cerrar todos los popups abiertos
+    markersRef.current.forEach(({ marker }) => marker.getPopup()?.remove());
+
+    // Buscar el marcador correspondiente al post seleccionado
+    const markerData = markersRef.current.find((m) => m.postId === postId);
+    if (markerData) {
+      markerData.marker.togglePopup(); // Abrir el popup del marcador seleccionado
+    }
+  };
+
   useEffect(() => {
     (window as any).showSimilarPosts = (postId: string) => {
       const post = postLocations.find((p) => p.id === postId);
@@ -249,8 +275,6 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
       }
     };
   }, [postLocations]);
-
-  console.log("-------------", postLocations, "--------------------", userLocationState); // Depuración
 
   return (
     <div style={{ position: "relative", width: "100%", height: "500px" }}>
@@ -304,13 +328,15 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
             {similarPosts.map((post) => (
               <li
                 key={post.id}
+                onClick={() => handleSimilarPostClick(post.id)}
                 style={{
                   marginBottom: "10px",
                   padding: "10px",
                   border: "1px solid #ccc",
                   borderRadius: "4px",
                   backgroundColor: "#f9f9f9",
-                  color: "#333", // Color de texto oscuro
+                  color: "#333",
+                  cursor: "pointer",
                 }}
               >
                 <h4 style={{ margin: "0 0 5px 0", fontSize: "14px", color: "#222" }}>
@@ -322,7 +348,6 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
               </li>
             ))}
           </ul>
-
         </div>
       )}
       <div ref={mapContainerRef} style={{ width: "100%", height: "100%" }} />
