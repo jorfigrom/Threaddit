@@ -24,6 +24,9 @@ const CommunityHeader = ({
   members: { id: string }[]; // Lista de miembros con sus IDs
 }) => {
 
+  console.log("comunidad",communityId, "usuario",authUserId, "cuenta",membersCount, "miem",members);
+    
+
 
   return (
     <div className="flex w-full flex-col justify-start">

@@ -36,7 +36,6 @@ const CreateCommunityForm = ({ userId }: CreateCommunityFormProps) => {
     const form = useForm<z.infer<typeof communityValidation>>({
         resolver: zodResolver(communityValidation),
         defaultValues: {
-            id: "",
             name: "",
             username: "",
             image: "",

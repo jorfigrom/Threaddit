@@ -77,12 +77,12 @@ export async function fetchCommunityDetails(username: string, userId: string) {
       {
         path: "createdBy",
         model: User,
-        select: "name username image _id id",
+        select: "name username image id _id", // Seleccionar los campos necesarios
       },
       {
         path: "members",
         model: User,
-        select: "name username image _id id",
+        select: "name username image id _id", // Seleccionar los campos necesarios
       },
     ]);
 
@@ -90,12 +90,28 @@ export async function fetchCommunityDetails(username: string, userId: string) {
       throw new Error("Comunidad no encontrada");
     }
 
-    // Verificar si el usuario es miembro de la comunidad
-    const isMember = communityDetails.members.some(
-      (member: any) => member.id === userId
-    );
+    // Convertir `_id` a string en los miembros y el creador
+    const members = communityDetails.members.map((member: any) => ({
+      _id: member._id.toString(), // Convertir `_id` a string
+      id: member.id,
+      name: member.name,
+      username: member.username,
+      image: member.image,
+    }));
 
-    return { ...communityDetails.toObject(), isMember }; // Incluir isMember en la respuesta
+    const createdBy = {
+      _id: communityDetails.createdBy._id.toString(), // Convertir `_id` a string
+      id: communityDetails.createdBy.id,
+      name: communityDetails.createdBy.name,
+      username: communityDetails.createdBy.username,
+      image: communityDetails.createdBy.image,
+    };
+
+    return {
+      ...communityDetails.toObject(),
+      members,
+      createdBy,
+    };
   } catch (error) {
     console.error("Error fetching community details:", error);
     throw new Error("Error al obtener los detalles de la comunidad.");
@@ -398,18 +414,20 @@ export async function fetchCommunityMembers(communityId: string) {
     const community = await Community.findOne({ id: communityId }).populate({
       path: "members",
       model: User,
-      select: "id name username", // Seleccionar solo los campos necesarios
+      select: "id name username image _id", // Seleccionar los campos necesarios
     });
 
     if (!community) {
       throw new Error("Comunidad no encontrada");
     }
 
-    // Retornar la lista de miembros
+    // Convertir `_id` a string y retornar la lista de miembros
     return community.members.map((member: any) => ({
+      _id: member._id.toString(), // Convertir `_id` a string
       id: member.id,
       name: member.name,
       username: member.username,
+      image: member.image,
     }));
   } catch (error) {
     console.error("Error fetching community members:", error);
