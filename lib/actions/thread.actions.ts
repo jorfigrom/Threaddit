@@ -104,6 +104,11 @@ export async function fetchThreadById(id: string) {
         select: "_id id name image",
       })
       .populate({
+        path: "community",
+        model: Community,
+        select: "_id id name image username",
+      })
+      .populate({
         path: "children",
         populate: [
           {
@@ -123,11 +128,13 @@ export async function fetchThreadById(id: string) {
         ],
       })
       .exec();
+
     return thread;
   } catch (error: any) {
     throw new Error(`Error al buscar el thread: ${error.message}`);
   }
 }
+
 
 export async function addCommentToThread(
   threadId: string,

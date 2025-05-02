@@ -39,9 +39,10 @@ async function page({ params }: { params: { id: string } }) {
                     author={thread.author}
                     community={thread.community}
                     createdAt={thread.createdAt}
+                    location={thread.location}
                     comments={thread.children}
                     imageThread={thread.imageThread}
-
+                    likes={thread.likes || []}
                 />
             </div>
 
@@ -56,18 +57,17 @@ async function page({ params }: { params: { id: string } }) {
             <div className='mt-10'>
                 {thread.children.map((childItem: any) => (
                     <ThreadCard
-                        key={childItem._id}
-                        id={childItem._id}
-                        currentUserId={user.id}
-                        parentId={childItem.parentId}
-                        content={childItem.text}
-                        author={childItem.author}
-                        community={childItem.community}
-                        createdAt={childItem.createdAt}
-                        comments={childItem.children}
-                        isComment
-                        imageThread={childItem.imageThread}
-                    />
+                    id={thread._id}
+                    currentUserId={user.id}
+                    parentId={thread.parentId}
+                    content={thread.text}
+                    author={thread.author}
+                    community={thread.community}
+                    createdAt={thread.createdAt}
+                    comments={thread.children}
+                    imageThread={thread.imageThread}
+                    likes={thread.likes || []}
+                />
                 ))}
             </div>
         </section>

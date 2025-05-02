@@ -46,120 +46,105 @@ const ThreadCard = ({
   location, // Recibir la ubicación
 }: Props) => {
   return (
-    <article
-      className={`flex w-full flex-col rounded-xl ${
-        isComment ? "px-0 xs:px-7" : "bg-dark-2 p-7"
-      }`}
-    >
-      <div className="flex items-start justify-between">
-        <div className="flex w-full flex-1 flex-row gap-4">
-          <div className="flex flex-col items-center">
-            <Link href={`/profile/${author?.id}`} className="relative h-11 w-11">
-              <Image
-                src={author?.image || ""}
-                alt="Profile image"
-                fill
-                className="cursor-pointer rounded-full"
-              />
+    <article className="w-full flex flex-col rounded-xl bg-dark-2 p-6">
+      {/* Encabezado */}
+      <div className="flex justify-between items-start">
+        <div className="flex gap-4">
+          {/* Avatar del autor */}
+          <Link href={`/profile/${author?.id}`} className="relative h-11 w-11">
+            <Image
+              src={author?.image || ""}
+              alt="Profile image"
+              fill
+              className="rounded-full object-cover"
+            />
+          </Link>
+
+          {/* Info del autor y comunidad */}
+          <div className="flex flex-col">
+            <Link href={`/profile/${author?.id}`}>
+              <h4 className="text-base-semibold text-light-1">{author?.name}</h4>
             </Link>
-            <div className="thread-card_bar"></div>
-          </div>
-          <div className="flex flex-col w-full">
-            <div className="flex justify-between items-center">
-              <Link href={`/profile/${author?.id}`} className="w-fit">
-                <h4 className="cursor-pointer text-base-semibold text-light-1">
-                  {author?.name}
-                </h4>
-              </Link>
 
-              {/* Mostrar la dirección alineada con el nombre de usuario */}
-              {location?.address && (
-                <p className="text-small-regular text-light-2 ml-4">
-                  Dirección: {location.address}
-                </p>
-              )}
-            </div>
-
-            {/* Renderizar la imagen del thread si existe */}
-            {imageThread && (
-              <div className="mt-3">
+            {/* Comunidad */}
+            {community && typeof community !== "string" && (
+              <Link
+                href={`/communities/${community.username}`}
+                className="flex items-center gap-2 mt-1"
+              >
                 <Image
-                  src={imageThread}
-                  alt="Thread image"
-                  width={400}
-                  height={200}
-                  className="rounded-lg object-cover"
+                  src={community.image}
+                  alt={community.name}
+                  width={18}
+                  height={18}
+                  className="rounded-full object-cover"
                 />
-              </div>
+                <p className="text-small-regular text-light-2">{community.name}</p>
+              </Link>
             )}
 
-            <p className="mt-5 text-small-regular text-light-2">{content}</p>
-
-            <div className="mt-5 flex items-center justify-between">
-              {/* Botones de interacción */}
-              <div className="flex gap-3.5">
-                <LikeButton
-                  threadId={id.toString()}
-                  currentUserId={currentUserId.toString()}
-                  initialLiked={
-                    Array.isArray(likes) &&
-                    likes.includes(currentUserId.toString())
-                  }
-                />
-                <Link href={`/thread/${id}`}>
-                  <Image
-                    src="/assets/reply.svg"
-                    alt="reply"
-                    width={24}
-                    height={24}
-                    className="cursor-pointer object-contain"
-                  />
-                </Link>
-              </div>
-
-              <DeleteButton
-                threadId={JSON.stringify(id)}
-                currentUserId={currentUserId}
-                authorId={author?.id || ""}
-                parentId={parentId}
-                isComment={isComment}
-              />
-
-              {/* Información de la comunidad */}
-              <div className="flex items-center gap-4">
-                {community ? (
-                  typeof community === "string" ? (
-                    <p className="text-small-regular text-light-2">
-                      Comunidad: {community}
-                    </p>
-                  ) : (
-                    <Link
-                      href={`/communities/${community.username}`}
-                      className="flex items-center gap-2"
-                    >
-                      {community.image && (
-                        <Image
-                          src={community.image}
-                          alt={community.name}
-                          width={24}
-                          height={24}
-                          className="rounded-full object-cover"
-                        />
-                      )}
-                      <p className="text-small-regular text-light-2">
-                        {community.name}
-                      </p>
-                    </Link>
-                  )
-                ) : (
-                  <p className="text-small-regular text-light-2">Sin comunidad</p>
-                )}
-              </div>
-            </div>
+            {/* Dirección */}
+            {location?.address && (
+              <p className="text-small-regular text-light-3 mt-1">
+                📍 {location.address}
+              </p>
+            )}
           </div>
         </div>
+
+        {/* Botón de eliminar */}
+        <DeleteButton
+          threadId={JSON.stringify(id)}
+          currentUserId={currentUserId}
+          authorId={author?.id || ""}
+          parentId={parentId}
+          isComment={isComment}
+        />
       </div>
+
+      {/* Imagen del post */}
+      {imageThread && (
+        <div className="mt-4 flex">
+          <div className="relative w-full h-[300px] bg-dark-3 rounded-lg overflow-hidden">
+            <Image
+              src={imageThread}
+              alt="Thread image"
+              fill
+              className="object-contain"
+            />
+          </div>
+        </div>
+      )}
+
+
+
+      {/* Contenido */}
+      <p className="mt-4 text-small-regular text-light-2">{content}</p>
+
+      {/* Acciones */}
+      <div className="mt-6 flex gap-3.5">
+        <LikeButton
+          threadId={id.toString()}
+          currentUserId={currentUserId.toString()}
+          initialLiked={
+            Array.isArray(likes) &&
+            likes.includes(currentUserId.toString())
+          }
+        />
+        <Link href={`/thread/${id}`}>
+          <Image
+            src="/assets/reply.svg"
+            alt="reply"
+            width={24}
+            height={24}
+            className="cursor-pointer object-contain"
+          />
+        </Link>
+      </div>
+
     </article>
+
+
   );
 };
 
