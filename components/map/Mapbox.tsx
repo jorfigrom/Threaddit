@@ -86,25 +86,72 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
     }
   };
 
-  const findSimilarPosts = (post: PostLocation) => {
-    if (!post || !post.address) return [];
-
-    const normalizedAddress = post.address
-      .toLowerCase()
-      .replace(/[^\w\s]/g, ""); // Eliminar caracteres especiales
-
-    return postLocations.filter((p) => {
-      if (!p.address || p.id === post.id) return false;
-
-      const normalizedOtherAddress = p.address
-        .toLowerCase()
-        .replace(/[^\w\s]/g, "");
-
-      return normalizedAddress.split(" ").some((keyword) =>
-        normalizedOtherAddress.includes(keyword)
-      );
-    });
+  // Calcula la similitud del coseno entre dos vectores numéricos.
+  // Este valor mide cuán similares son dos textos representados como vectores.
+  const cosineSimilarity = (vecA: number[], vecB: number[]): number => {
+    const dotProduct = vecA.reduce((sum, val, i) => sum + val * vecB[i], 0);
+    const magnitudeA = Math.sqrt(vecA.reduce((sum, val) => sum + val * val, 0));
+    const magnitudeB = Math.sqrt(vecB.reduce((sum, val) => sum + val * val, 0));
+    return magnitudeA && magnitudeB ? dotProduct / (magnitudeA * magnitudeB) : 0;
   };
+
+  // Construye un vocabulario único de palabras presentes en los textos de los posts.
+  // Incluye el post objetivo y todos los demás para tener una base común.
+  const buildVocabulary = (posts: PostLocation[], target: PostLocation): string[] => {
+    const text = (p: PostLocation) =>
+      `${p.address || ""} ${p.authorBio || ""} ${p.placeName || ""}`.toLowerCase();
+
+    const words = new Set<string>();
+    [...posts, target].forEach((p) => {
+      text(p)
+        .replace(/[^\w\s]/g, "") // Elimina puntuación y caracteres especiales
+        .split(/\s+/)
+        .forEach((word) => word && words.add(word));
+    });
+    return Array.from(words);
+  };
+
+  // Transforma un texto en un vector numérico, según la frecuencia de cada palabra del vocabulario.
+  // Es una representación tipo "bolsa de palabras" (Bag of Words).
+  const textToVector = (text: string, vocabulary: string[]): number[] => {
+    const wordCounts: Record<string, number> = {};
+    text.replace(/[^\w\s]/g, "")
+      .toLowerCase()
+      .split(/\s+/)
+      .forEach((word) => {
+        if (word) wordCounts[word] = (wordCounts[word] || 0) + 1;
+      });
+
+    return vocabulary.map((word) => wordCounts[word] || 0);
+  };
+
+  // Dado un post, busca otros posts similares según el contenido textual.
+  // Usa similitud de coseno sobre vectores construidos a partir de texto.
+  const findSimilarPosts = (post: PostLocation): PostLocation[] => {
+    if (!post) return [];
+
+    // Se construye un vocabulario compartido para asegurar que todos los vectores tengan la misma dimensión
+    const vocabulary = buildVocabulary(postLocations, post);
+
+    // Vector del post de referencia (el que se quiere comparar)
+    const targetText = `${post.address || ""} ${post.authorBio || ""} ${post.placeName || ""}`;
+    const targetVector = textToVector(targetText, vocabulary);
+
+    return postLocations
+      .filter((p) => p.id !== post.id) // Se ignora el post original
+      .map((p) => {
+        const text = `${p.address || ""} ${p.authorBio || ""} ${p.placeName || ""}`;
+        const vector = textToVector(text, vocabulary);
+        const similarity = cosineSimilarity(targetVector, vector);
+        return { post: p, similarity };
+      })
+      .filter((entry) => entry.similarity > 0) // Se descartan posts no relacionados
+      .sort((a, b) => b.similarity - a.similarity) // Se ordenan de más a menos similares
+      .slice(0, 5) // Se devuelven los 5 más parecidos
+      .map((entry) => entry.post);
+  };
+
+
 
   useEffect(() => {
     mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || "";
@@ -222,9 +269,9 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
           <h3 style="font-size: 14px; font-weight: bold; margin-bottom: 8px; color: black;">${post.authorBio || "Anónimo"}</h3>
           <p style="font-size: 12px; margin-bottom: 8px; color: black;">${post.address || "Sin dirección"}</p>
           ${post.imageThread
-            ? `<img src="${post.imageThread}" alt="Imagen" style="width: 100%; border-radius: 8px; margin-bottom: 8px;" />`
-            : ""
-          }
+          ? `<img src="${post.imageThread}" alt="Imagen" style="width: 100%; border-radius: 8px; margin-bottom: 8px;" />`
+          : ""
+        }
           <p style="font-size: 12px; color: black;">Likes: ${post.likes?.length ?? 0}</p>
           <button 
             style="margin-top: 8px; padding: 5px 10px; font-size: 12px; background-color: #3887be; color: white; border: none; border-radius: 4px; cursor: pointer;"
@@ -323,7 +370,7 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
           >
             Cerrar
           </button>
-          <h3 style={{color: "#333"}}>Posts similares</h3>
+          <h3 style={{ color: "#333" }}>Posts similares</h3>
           <ul style={{ listStyle: "none", padding: 0 }}>
             {similarPosts.map((post) => (
               <li
