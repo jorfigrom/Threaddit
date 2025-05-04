@@ -30,7 +30,7 @@ const CommunityMembershipButton = ({
         console.error("Error fetching community members:", error);
       }
     };
-  
+
     fetchMembers();
   }, [communityId, userId]);
 
@@ -63,14 +63,16 @@ const CommunityMembershipButton = ({
       <button
         onClick={handleMembershipToggle}
         disabled={isPending}
-        className={`px-4 py-2 rounded-lg ${
-          isMember ? "bg-red-500 text-white" : "bg-blue-500 text-white"
-        }`}
+        className={`px-4 py-2 rounded-full text-sm font-medium transition border ${isMember
+            ? "bg-transparent text-red-400 border-red-400 hover:bg-red-500 hover:text-white"
+            : "bg-primary text-white border-primary hover:opacity-90"
+          }`}
       >
-        {isPending ? "Cargando..." : isMember ? "Abandonar" : "Unirse"}
+         {isPending ? "Cargando..." : isMember ? "Abandonar comunidad" : "Unirse a la comunidad"}
       </button>
-      <p className="text-sm text-gray-500">{membersCount} miembros</p>
+      
     </div>
+
   );
 };
 
