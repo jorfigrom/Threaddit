@@ -39,7 +39,7 @@ interface Thread {
   };
 }
 
-async function Page({ params, searchParams }: { 
+async function Page({ params, searchParams }: {
   params: { username: string };
   searchParams: { bio?: string };
 }) {
@@ -62,9 +62,9 @@ async function Page({ params, searchParams }: {
   // Filtrar posts por biografía del autor o contenido del post si hay término de búsqueda
   const filteredPosts = bioQuery
     ? communityPosts.filter((post: Thread) =>
-        post.author?.name?.toLowerCase().includes(bioQuery) ||
-        post.text.toLowerCase().includes(bioQuery)
-      )
+      post.author?.name?.toLowerCase().includes(bioQuery) ||
+      post.text.toLowerCase().includes(bioQuery)
+    )
     : communityPosts;
 
   const sortedPosts = filteredPosts.sort(
@@ -121,7 +121,7 @@ async function Page({ params, searchParams }: {
 
       {/* Barra de búsqueda por biografía o contenido */}
       <div className="mt-4">
-        <Searchbar 
+        <Searchbar
           routeType={`http://localhost:3000/communities/${username}`}
           placeholder="Buscar por biografía o contenido"
         />
@@ -138,11 +138,12 @@ async function Page({ params, searchParams }: {
             {communityTabs.map((tab) => (
               <TabsTrigger key={tab.label} value={tab.value} className="tab">
                 <Image src={tab.icon} alt={tab.label} width={24} height={24} className="object-contain" />
-                <p className="max-sm:hidden">{tab.label}</p>
-                <p className="ml-1 rounded-sm bg-light-4 px-2 py-1 !text-tiny-medium text-light-2">
+                <p className="max-sm:hidden ml-2">{tab.label}</p>
+                <span className="ml-2 rounded-full bg-blue-600 px-2 py-0.5 text-xs text-white">
                   {tab.label === "Threads" ? sortedPosts.length : community.members?.length}
-                </p>
+                </span>
               </TabsTrigger>
+
             ))}
           </TabsList>
 
