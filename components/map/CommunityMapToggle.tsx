@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import dynamic from "next/dynamic";
 
 interface PostLocation {
@@ -22,6 +22,7 @@ const MapboxMapaInteractivo = dynamic(() => import("@/components/map/Mapbox"), {
 const CommunityMapToggle = ({ postLocations }: { postLocations: PostLocation[] }) => {
   const [showMap, setShowMap] = useState(false);
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
@@ -37,7 +38,8 @@ const CommunityMapToggle = ({ postLocations }: { postLocations: PostLocation[] }
     <div className="mb-6">
       <button
         onClick={() => setShowMap((prev) => !prev)}
-        className="mb-4 rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 transition"
+        disabled={isPending}
+        className="px-4 py-2 rounded-full text-sm font-medium transition border bg-primary text-white border-primary hover:opacity-90"
       >
         {showMap ? "Ocultar mapa" : "Ver mapa"}
       </button>

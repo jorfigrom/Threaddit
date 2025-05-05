@@ -499,3 +499,29 @@ export async function updateCommunityInfo({
     throw error;
   }
 }
+
+
+export async function fetchUserCommunities(userId: string) {
+  connectToDB();
+
+  try {
+    const user = await User.findOne({ id: userId }).populate({
+      path: "communities",
+      model: Community,
+      select: "id name username",
+    });
+
+    if (!user) {
+      throw new Error("Usuario no encontrado");
+    }
+
+    return user.communities.map((community: any) => ({
+      id: community.id,
+      name: community.name,
+      username: community.username,
+    }));
+  } catch (error) {
+    console.error("Error fetching user communities:", error);
+    throw new Error("No se pudieron obtener las comunidades del usuario.");
+  }
+}

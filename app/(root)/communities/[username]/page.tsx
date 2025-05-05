@@ -128,7 +128,7 @@ async function Page({ params, searchParams }: {
       </div>
 
       {/* Componente CommunityMapToggle */}
-      <div className="mt-6">
+      <div className="mt-6 bg-blue-50">
         <CommunityMapToggle postLocations={postLocations} />
       </div>
 
