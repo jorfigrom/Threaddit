@@ -21,7 +21,7 @@ interface Result {
       id: string;
       name: string;
       image: string;
-    } ;
+    };
     imageThread: string;
     createdAt: string;
     children: {
@@ -49,6 +49,13 @@ async function ThreadsTab({ currentUserId, accountId, accountType }: Props) {
   if (accountType === "Likes") {
     // Obtener threads basados en "Likes"
     result = await fetchLikedThreads(accountId);
+
+    // Asegúrate de que todos los threads tengan las propiedades necesarias
+    result.threads = result.threads.map((thread) => ({
+      ...thread,
+      imageThread: thread.imageThread || "",
+      community: thread.community || { id: "", name: "Sin comunidad", image: "", username: "" },
+    }));
   } else if (accountType === "Community") {
     // Obtener threads de la comunidad
     result = await fetchCommunityPosts(accountId);
@@ -67,31 +74,34 @@ async function ThreadsTab({ currentUserId, accountId, accountType }: Props) {
     redirect("/");
   }
 
+  // Depurar los datos de los threads
+  console.log("Threads result:", result.threads);
+
   return (
     <section className="mt-9 flex flex-col gap-10">
       {result.threads.map((thread) => (
         <ThreadCard
-        key={thread._id.toString()}
-        id={thread._id.toString()}
-        currentUserId={currentUserId}
-        parentId={thread.parentId}
-        content={thread.text}
-        author={
-          accountType === "User"
-            ? { name: result.name, image: result.image, id: result.id }
-            : {
-                name: thread.author.name,
-                image: thread.author.image,
-                id: thread.author.id,
-              }
-        }
-        community={thread.community} // Pasar la comunidad directamente
-        imageThread={thread.imageThread}
-        createdAt={thread.createdAt}
-        comments={thread.children}
-        likes={thread.likes}
-        location={thread.location || {}} // Pasar la ubicación al componente
-      />
+          key={thread._id.toString()}
+          id={thread._id.toString()}
+          currentUserId={currentUserId}
+          parentId={thread.parentId}
+          content={thread.text}
+          author={
+            accountType === "User"
+              ? { name: result.name, image: result.image, id: result.id }
+              : {
+                  name: thread.author.name,
+                  image: thread.author.image,
+                  id: thread.author.id,
+                }
+          }
+          community={thread.community} // Pasar la comunidad directamente
+          imageThread={thread.imageThread}
+          createdAt={thread.createdAt}
+          comments={thread.children}
+          likes={thread.likes}
+          location={thread.location || {}} // Pasar la ubicación al componente
+        />
       ))}
     </section>
   );

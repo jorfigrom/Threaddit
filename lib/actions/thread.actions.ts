@@ -271,6 +271,11 @@ export async function fetchLikedThreads(userId: string) {
         model: User,
         select: "_id id name image",
       })
+      .populate({
+        path: "community", // Agregar populate para la comunidad
+        model: Community,
+        select: "_id id name image username", // Seleccionar los campos necesarios
+      })
       .sort({ createdAt: "desc" }); // Ordenar por fecha de creación
 
     // Devuelve un objeto con la estructura esperada
@@ -287,7 +292,8 @@ export async function fetchLikedThreads(userId: string) {
           image: thread.author.image,
           id: thread.author._id.toString(),
         },
-        community: thread.community,
+        community: thread.community, // Ahora incluirá los datos completos de la comunidad
+        location: thread.location,
         imageThread: thread.imageThread,
         createdAt: thread.createdAt,
         children: thread.children,
