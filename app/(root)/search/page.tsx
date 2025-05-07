@@ -5,6 +5,7 @@ import UserCard from "@/components/cards/UserCard";
 import CommunityCard from "@/components/cards/communityCard";
 import ThreadCard from "@/components/cards/ThreadCard";
 import Searchbar from "@/components/shared/SearchBar";
+import CommunityMapToggle from "@/components/map/CommunityMapToggle";
 
 import { fetchUser, fetchUsers } from "@/lib/actions/user.actions";
 import { fetchCommunities } from "@/lib/actions/community.actions";
@@ -54,11 +55,86 @@ async function Page({
   const filteredUsers =
     filter === "all" || filter === "users" ? result.users : [];
 
+  // Extraer ubicaciones de los posts
+  interface PostLocation {
+    id: string;
+    latitude: number;
+    longitude: number;
+    placeName?: string;
+    address: string;
+    imageThread: string;
+    authorBio?: string;
+    likes?: string[];
+    createdAt?: string;
+  }
+
+  let postLocations: PostLocation[] = [];
+
+  if (filter === "all" || filter === "posts") {
+    // Ubicaciones basadas en los posts filtrados
+    postLocations = filteredPosts
+      .filter((post: any) => post.location)
+      .map((post: any): PostLocation => ({
+        id: post._id.toString(),
+        latitude: post.location.latitude,
+        longitude: post.location.longitude,
+        placeName: post.community?.name,
+        address: post.text,
+        imageThread: post.imageThread,
+        authorBio: post.author?.name,
+        likes: post.likes,
+        createdAt: post.createdAt,
+      }));
+  } else if (filter === "users") {
+    // Ubicaciones basadas en los posts de los usuarios filtrados
+    const userIds = filteredUsers.map((user) => user.id);
+    postLocations = posts
+      .filter(
+        (post: any) =>
+          post.location && userIds.includes(post.author?.id)
+      )
+      .map((post: any): PostLocation => ({
+        id: post._id.toString(),
+        latitude: post.location.latitude,
+        longitude: post.location.longitude,
+        placeName: post.community?.name,
+        address: post.text,
+        imageThread: post.imageThread,
+        authorBio: post.author?.name,
+        likes: post.likes,
+        createdAt: post.createdAt,
+      }));
+  } else if (filter === "communities") {
+    // Ubicaciones basadas en los posts de las comunidades filtradas
+    const communityIds = filteredCommunities.map((community) => community.id);
+    postLocations = posts
+      .filter(
+        (post: any) =>
+          post.location && communityIds.includes(post.community?.id)
+      )
+      .map((post: any): PostLocation => ({
+        id: post._id.toString(),
+        latitude: post.location.latitude,
+        longitude: post.location.longitude,
+        placeName: post.community?.name,
+        address: post.text,
+        imageThread: post.imageThread,
+        authorBio: post.author?.name,
+        likes: post.likes,
+        createdAt: post.createdAt,
+      }));
+  }
+
   return (
     <section>
       <h1 className="head-text mb-10">Buscar</h1>
 
       <Searchbar routeType="search" />
+
+      {/* Mapa con las ubicaciones de los posts */}
+      <div className="mt-6 bg-blue-50">
+        <CommunityMapToggle postLocations={postLocations} />
+      </div>
 
       <div className="mt-14 flex flex-col gap-9">
         {/* Mostrar comunidades relacionadas */}
