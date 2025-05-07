@@ -39,15 +39,16 @@ const CommunityMapToggle = ({ postLocations }: { postLocations: PostLocation[] }
       <button
         onClick={() => setShowMap((prev) => !prev)}
         disabled={isPending}
-        className="px-4 py-2 rounded-full text-sm font-medium transition border bg-primary text-white border-primary hover:opacity-90"
+        className="w-full text-sm font-normal text-light-1 bg-dark-3 border border-dark-4 p-2 rounded no-focus"
       >
-        {showMap ? "Ocultar mapa" : "Ver mapa"}
+        {showMap ? "Ocultar mapa" : "Ver en el mapa"}
       </button>
 
       {showMap && (
         <MapboxMapaInteractivo postLocations={postLocations} userLocation={userLocation} />
       )}
     </div>
+
   );
 };
 
