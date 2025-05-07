@@ -6,19 +6,41 @@ import { profileTabs } from "@/constants";
 
 import ThreadsTab from "@/components/shared/ThreadsTab";
 import ProfileHeader from "@/components/shared/ProfileHeader";
+import CommunityMapToggle from "@/components/map/CommunityMapToggle";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { fetchUser } from "@/lib/actions/user.actions";
-import ThreadCard from "@/components/cards/ThreadCard";
-//import RepliesTab from "@/components/shared/RepliesTab";
+import { fetchPosts } from "@/lib/actions/thread.actions";
 
 async function Page({ params }: { params: { id: string } }) {
   const user = await currentUser();
   if (!user) return null;
 
-  const { id } = await params;
+  const { id } = params;
   const userInfo = await fetchUser(id);
   if (!userInfo?.onboarded) redirect("/onboarding");
+
+  // Obtener todos los posts y filtrar los que pertenecen al usuario del perfil
+  const { posts } = await fetchPosts(1, 100); // Obtener hasta 100 posts (ajustar según sea necesario)
+  const userPosts = posts.filter((post: any) => post.author?.id === id);
+
+  // Extraer ubicaciones de los posts del usuario
+  const postLocations = userPosts
+    .filter((post: any) => post.location && post.location.latitude && post.location.longitude) // Filtrar posts con ubicación válida
+    .map((post: any) => ({
+      id: post._id.toString(),
+      latitude: post.location.latitude,
+      longitude: post.location.longitude,
+      placeName: post.community?.name || "Sin nombre",
+      address: post.text || "Sin dirección",
+      imageThread: post.imageThread || "",
+      authorBio: userInfo.name || "Sin biografía",
+      likes: post.likes || [],
+      createdAt: post.createdAt || "",
+    }));
+
+  // Depurar las ubicaciones extraídas
+  console.log("Post locations:", postLocations);
 
   return (
     <section>
@@ -30,6 +52,11 @@ async function Page({ params }: { params: { id: string } }) {
         imgUrl={userInfo.image}
         bio={userInfo.bio}
       />
+
+      {/* Mapa con las ubicaciones de los posts del usuario */}
+      <div className="mt-6 bg-blue-50">
+        <CommunityMapToggle postLocations={postLocations} />
+      </div>
 
       <div className="mt-9">
         <Tabs defaultValue="threads" className="w-full">
@@ -47,14 +74,14 @@ async function Page({ params }: { params: { id: string } }) {
 
                 {tab.label === "Threads" && (
                   <p className="ml-1 rounded-sm bg-light-4 px-2 py-1 !text-tiny-medium text-light-2">
-                    {userInfo.threads.length}
+                    {userPosts.length}
                   </p>
                 )}
               </TabsTrigger>
             ))}
           </TabsList>
 
-          {/* Aquí solo se renderiza el contenido correspondiente a la pestaña activa */}
+          {/* Contenido de las pestañas */}
           {profileTabs.map((tab) => (
             <TabsContent
               key={`content-${tab.label}`}
@@ -70,9 +97,9 @@ async function Page({ params }: { params: { id: string } }) {
               )}
               {tab.value === "likes" && (
                 <ThreadsTab
-                  currentUserId={user.id} // Usuario autenticado
-                  accountId={userInfo.id} // Usuario del perfil
-                  accountType="Likes" // Indica que este tab es para likes
+                  currentUserId={user.id}
+                  accountId={userInfo.id}
+                  accountType="Likes"
                 />
               )}
             </TabsContent>
