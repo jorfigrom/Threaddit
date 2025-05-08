@@ -501,27 +501,62 @@ export async function updateCommunityInfo({
 }
 
 
-export async function fetchUserCommunities(userId: string) {
-  connectToDB();
-
+//iugal que fetchAllCommunities pero devuelve mas informacion sobre la comunidad (post)
+export async function fetchAllCommunities2() {
   try {
-    const user = await User.findOne({ id: userId }).populate({
-      path: "communities",
-      model: Community,
-      select: "id name username",
-    });
+    connectToDB();
 
-    if (!user) {
-      throw new Error("Usuario no encontrado");
-    }
+    // Obtener todas las comunidades con los campos necesarios
+    const communities = await Community.find({})
+      .populate({
+        path: "members",
+        model: User,
+        select: "_id", // Solo necesitamos los IDs de los miembros
+      })
+      .populate({
+        path: "createdBy",
+        model: User,
+        select: "_id", // Solo necesitamos el ID del creador
+      })
+      .exec();
 
-    return user.communities.map((community: any) => ({
+    // Formatear las comunidades para que sean adecuadas para el formulario
+    return communities.map((community) => ({
       id: community.id,
       name: community.name,
       username: community.username,
+      createdBy: community.createdBy?._id.toString(), // Convertir el ID del creador a string
+      members: community.members.map((member: any) => member._id.toString()), // Convertir los IDs de los miembros a string
     }));
   } catch (error) {
+    console.error("Error fetching all communities:", error);
+    throw new Error("Error al obtener todas las comunidades.");
+  }
+}
+
+//para en los post ver solo las comunidades que es miembro
+export async function fetchUserCommunities(userId: string) {
+  try {
+    // Obtener todas las comunidades
+    const allCommunities = await fetchAllCommunities2();
+
+    // Filtrar comunidades en el servidor
+    const userCommunities = allCommunities.filter((community: any) => {
+      // Verificar si el usuario es el creador
+      const isCreator = community.createdBy === userId;
+
+      // Verificar si el usuario es miembro
+      const isMember = community.members?.includes(userId);
+
+      return isCreator || isMember;
+    });
+
+    // Depurar: Verificar las comunidades filtradas
+    console.log("User Communities:", userCommunities);
+
+    return userCommunities;
+  } catch (error) {
     console.error("Error fetching user communities:", error);
-    throw new Error("No se pudieron obtener las comunidades del usuario.");
+    throw new Error("Error al obtener las comunidades del usuario.");
   }
 }

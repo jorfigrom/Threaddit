@@ -23,7 +23,7 @@ import { ThreadValidation } from "@/lib/validations/thread";
 import { usePathname, useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createThread } from "@/lib/actions/thread.actions";
-import { fetchAllCommunities } from "@/lib/actions/community.actions"; // Importar la nueva función
+import { fetchAllCommunities, fetchUserCommunities } from "@/lib/actions/community.actions"; // Importar la nueva función
 import { z } from "zod";
 
 import { UploadButton } from "@uploadthing/react";
@@ -32,6 +32,8 @@ import { OurFileRouter } from "@/app/api/uploadthing/core";
 
 
 import MapboxMap from "@/components/map/MapboxPost";
+import { currentUser } from "@clerk/nextjs/server";
+import { fetchUser } from "@/lib/actions/user.actions";
 
 interface Props {
     user: {
@@ -53,16 +55,16 @@ function PostThread({ userId }: { userId: string }) {
 
     // Cargar comunidades al montar el componente
     useEffect(() => {
-        async function loadCommunities() {
-            try {
-                const communities = await fetchAllCommunities(); // Usar la nueva función
-                setCommunities(communities);
-            } catch (error) {
-                console.error("Error loading communities:", error);
-            }
+    async function loadCommunities() {
+        try {
+            const userCommunities = await fetchUserCommunities(userId); // Obtener comunidades filtradas
+            setCommunities(userCommunities);
+        } catch (error) {
+            console.error("Error loading communities:", error);
         }
-        loadCommunities();
-    }, []);
+    }
+    loadCommunities();
+}, [userId]);
 
     const form = useForm({
         resolver: zodResolver(ThreadValidation),
