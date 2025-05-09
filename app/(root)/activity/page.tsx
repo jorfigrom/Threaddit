@@ -54,11 +54,13 @@ async function Page() {
                       </>
                     ) : (
                       <>
+                      A
                         <span className='mr-1 text-primary-500'>
+                          
                           {"likedBy" in item && item.likedBy.length === 1
-                            ? `A ${item.likedBy[0].name}`
+                            ? ` ${item.likedBy[0].name}`
                             : "likedBy" in item
-                            ? `A ${item.likedBy[0].name} y ${item.likedBy.length - 1
+                            ? ` ${item.likedBy[0].name} y ${item.likedBy.length - 1
                             } persona${item.likedBy.length - 1 > 1 ? "s" : ""}`
                             : ""}
                         </span>{" "}

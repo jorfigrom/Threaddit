@@ -39,8 +39,8 @@ function CommunityCard({ id, name, username, imgUrl, bio, members }: Props) {
 
       <div className='mt-5 flex flex-wrap items-center justify-between gap-3'>
         <Link href={`/communities/${username}`}>
-          <Button size='sm' className='community-card_btn'>
-            View
+          <Button className='user-card_btn'>
+            Ver
           </Button>
         </Link>
 
