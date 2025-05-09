@@ -163,29 +163,59 @@ export async function getActivity(userId: string) {
   try {
     connectToDB();
 
-    // Buscar todos los hilos creados por el usuario.
+    // Buscar todos los hilos creados por el usuario
     const userThreads = await Thread.find({ author: userId });
 
-    // Recopilar todos los IDs de los hilos secundarios (respuestas) desde el campo 'children' de cada hilo del usuario.
+    // Recopilar todos los IDs de los hilos secundarios (respuestas) desde el campo 'children' de cada hilo del usuario
     const childThreadIds = userThreads.reduce((acc, userThread) => {
       return acc.concat(userThread.children);
     }, []);
 
-    // Buscar y devolver los hilos secundarios (respuestas), excluyendo los creados por el mismo usuario.
+    // Buscar y devolver los hilos secundarios (respuestas), excluyendo los creados por el mismo usuario
     const replies = await Thread.find({
       _id: { $in: childThreadIds },
-      author: { $ne: userId }, // Excluir los hilos creados por el mismo usuario.
+      author: { $ne: userId }, // Excluir los hilos creados por el mismo usuario
     }).populate({
       path: "author",
       model: User,
-      select: "name image _id",
+      select: "name image", // Obtener solo el nombre e imagen del autor
     });
 
-    return replies;
+    // Buscar publicaciones del usuario que han recibido likes
+    const likedThreads = await Thread.find({
+      author: userId,
+      likes: { $exists: true, $ne: [] }, // Verificar que el campo "likes" exista y no esté vacío
+    });
+
+    // Obtener información de los usuarios que dieron like
+    const userLikes = await User.find({
+      id: { $in: likedThreads.flatMap((thread) => thread.likes) }, // Buscar usuarios por sus IDs
+    }).select("name image id");
+
+    // Crear un mapa para acceder rápidamente a los datos de los usuarios que dieron like
+    const userLikesMap = userLikes.reduce((acc, user) => {
+      acc[user.id] = user;
+      return acc;
+    }, {} as Record<string, { name: string; image: string }>);
+
+    // Combinar respuestas y likes en una sola lista de actividad
+    const activity = [
+      ...replies.map((reply) => ({
+        type: "reply",
+        parentId: reply.parentId,
+        author: reply.author,
+      })),
+      ...likedThreads.map((thread) => ({
+        type: "like",
+        threadId: thread._id,
+        likedBy: thread.likes.map((userId: string) => userLikesMap[userId]), // Mapear IDs a datos de usuario
+      })),
+    ];
+
+    return activity;
   } catch (error) {
-    console.error("Error al obtener respuestas: ", error);
+    console.error("Error al obtener actividad: ", error);
     throw error;
   }
 }
-
 
