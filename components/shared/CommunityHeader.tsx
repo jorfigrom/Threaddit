@@ -21,12 +21,13 @@ const CommunityHeader = ({
   bio: string;
   membersCount: number;
   createdBy: string;
-  members: { id: string }[]; // Lista de miembros con sus IDs
+  members: { id: string; image?: string }[]; // Lista de miembros con sus IDs y una imagen opcional
 }) => {
-
-  console.log("comunidad", communityId, "usuario", authUserId, "cuenta", membersCount, "miem", members);
-
-
+  // Mapear los miembros para incluir una imagen predeterminada si no existe
+  const membersWithImages = members.map((member) => ({
+    ...member,
+    image: member.image || "/assets/default-avatar.png", // Imagen predeterminada
+  }));
 
   return (
     <div className="flex w-full flex-col justify-start">
@@ -63,7 +64,7 @@ const CommunityHeader = ({
           <CommunityMembershipButton
             communityId={communityId}
             userId={authUserId}
-            members={members} // Pasar la lista de miembros
+            members={membersWithImages} // Pasar la lista de miembros con imágenes
             initialMembersCount={membersCount}
           />
         )}

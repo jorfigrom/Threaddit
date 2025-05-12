@@ -2,6 +2,7 @@
 
 import { useState, useTransition, useEffect } from "react";
 import { addMemberToCommunity, removeUserFromCommunity, fetchCommunityMembers } from "../../lib/actions/community.actions";
+import Image from "next/image";
 
 const CommunityMembershipButton = ({
   communityId,
@@ -12,19 +13,21 @@ const CommunityMembershipButton = ({
   communityId: string;
   userId: string;
   initialMembersCount: number;
-  members: { id: string }[];
+  members: { id: string; image: string }[];
 }) => {
   const [isMember, setIsMember] = useState(false);
   const [membersCount, setMembersCount] = useState(initialMembersCount);
   const [isPending, startTransition] = useTransition();
+  const [memberImages, setMemberImages] = useState<{ id: string; image: string }[]>(members);
 
   useEffect(() => {
     const fetchMembers = async () => {
       try {
-        const members = await fetchCommunityMembers(communityId);
-        const userIsMember: boolean = members.some((member: { id: string }) => member.id === userId);
+        const fetchedMembers = await fetchCommunityMembers(communityId);
+        const userIsMember: boolean = fetchedMembers.some((member: { id: string }) => member.id === userId);
         setIsMember(userIsMember);
-        setMembersCount(members.length);
+        setMembersCount(fetchedMembers.length);
+        setMemberImages(fetchedMembers); // Actualizar las imágenes de los miembros
       } catch (error) {
         console.error("Error fetching community members:", error);
       }
@@ -45,6 +48,10 @@ const CommunityMembershipButton = ({
           setIsMember(true);
           setMembersCount(updatedCount);
         }
+
+        // Volver a obtener la lista de miembros para actualizar las imágenes
+        const updatedMembers = await fetchCommunityMembers(communityId);
+        setMemberImages(updatedMembers);
       } catch (error) {
         console.error("Error updating membership:", error);
       }
@@ -64,9 +71,26 @@ const CommunityMembershipButton = ({
       >
         {isPending ? "Cargando..." : isMember ? "Abandonar comunidad" : "Unirse a la comunidad"}
       </button>
-      <p className="text-sm text-gray-500">
-        {membersCount === 1 ? "1 miembro" : `${membersCount} miembros`}
-      </p>
+      <div className="flex items-center gap-2 mt-2">
+        <p className="text-sm text-gray-500">
+          {membersCount === 1 ? "1 miembro" : `${membersCount} miembros`}
+        </p>
+        <div className="flex items-center">
+          {memberImages.slice(0, 3).map((member, index) => (
+            <Image
+              key={member.id}
+              src={member.image}
+              alt={`user_${index}`}
+              width={24}
+              height={24}
+              className={`${index !== 0 && "-ml-2"} rounded-full object-cover`}
+            />
+          ))}
+          {memberImages.length > 3 && (
+            <p className="ml-1 text-sm text-gray-500">+{memberImages.length - 3}</p>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
