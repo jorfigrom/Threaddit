@@ -264,26 +264,45 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
     filteredPosts.forEach((post) => {
       const isHighlighted = highlightedPosts.has(post.id);
 
+      // Crear un elemento HTML para el marcador
+      const markerElement = document.createElement("div");
+      markerElement.style.width = isHighlighted ? "60px" : "40px"; // Más grande si está destacado
+      markerElement.style.height = isHighlighted ? "60px" : "40px"; // Más grande si está destacado
+      markerElement.style.borderRadius = "50%";
+      markerElement.style.overflow = "hidden";
+      markerElement.style.border = isHighlighted ? "6px solid #f97316" : "2px solid #3b82f6"; // Naranja para destacados, azul para el resto
+      markerElement.style.cursor = "pointer";
+
+      // Agregar la imagen del post al marcador
+      const img = document.createElement("img");
+      img.src = post.imageThread || "https://via.placeholder.com/40"; // Imagen del post o un placeholder
+      img.alt = "Post Image";
+      img.style.width = "100%";
+      img.style.height = "100%";
+      img.style.objectFit = "cover";
+
+      markerElement.appendChild(img);
+
       const popup = new mapboxgl.Popup().setHTML(`
-        <div style="max-width: 200px; background-color: white; padding: 10px; border-radius: 8px; border: 1px solid #ccc;">
-          <h3 style="font-size: 14px; font-weight: bold; margin-bottom: 8px; color: black;">${post.authorBio || "Anónimo"}</h3>
-          <p style="font-size: 12px; margin-bottom: 8px; color: black;">${post.address || "Sin dirección"}</p>
-          ${post.imageThread
+    <div style="max-width: 200px; background-color: white; padding: 10px; border-radius: 8px; border: 1px solid #ccc;">
+      <h3 style="font-size: 14px; font-weight: bold; margin-bottom: 8px; color: black;">${post.authorBio || "Anónimo"}</h3>
+      <p style="font-size: 12px; margin-bottom: 8px; color: black;">${post.address || "Sin dirección"}</p>
+      ${post.imageThread
           ? `<img src="${post.imageThread}" alt="Imagen" style="width: 100%; border-radius: 8px; margin-bottom: 8px;" />`
           : ""
         }
-          <p style="font-size: 12px; color: black;">Likes: ${post.likes?.length ?? 0}</p>
-          <button 
-            style="margin-top: 8px; padding: 5px 10px; font-size: 12px; background-color: #3887be; color: white; border: none; border-radius: 4px; cursor: pointer;"
-            onclick="window.showSimilarPosts('${post.id}')"
-          >
-            Ver similares
-          </button>
-        </div>
-      `);
+      <p style="font-size: 12px; color: black;">Likes: ${post.likes?.length ?? 0}</p>
+      <button 
+        style="margin-top: 8px; padding: 5px 10px; font-size: 12px; background-color: #3887be; color: white; border: none; border-radius: 4px; cursor: pointer;"
+        onclick="window.showSimilarPosts('${post.id}')"
+      >
+        Ver similares
+      </button>
+    </div>
+  `);
 
       const marker = new mapboxgl.Marker({
-        color: isHighlighted ? "#f97316" : "#3b82f6", // Naranja para destacados, azul para el resto
+        element: markerElement, // Usar el elemento personalizado como marcador
       })
         .setLngLat([post.longitude, post.latitude])
         .setPopup(popup)

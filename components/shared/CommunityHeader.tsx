@@ -24,8 +24,8 @@ const CommunityHeader = ({
   members: { id: string }[]; // Lista de miembros con sus IDs
 }) => {
 
-  console.log("comunidad",communityId, "usuario",authUserId, "cuenta",membersCount, "miem",members);
-    
+  console.log("comunidad", communityId, "usuario", authUserId, "cuenta", membersCount, "miem", members);
+
 
 
   return (

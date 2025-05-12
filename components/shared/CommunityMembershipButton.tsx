@@ -12,20 +12,19 @@ const CommunityMembershipButton = ({
   communityId: string;
   userId: string;
   initialMembersCount: number;
-  members: { id: string }[]; // Add members prop
+  members: { id: string }[];
 }) => {
-  const [isMember, setIsMember] = useState(false); // Inicializar como falso
+  const [isMember, setIsMember] = useState(false);
   const [membersCount, setMembersCount] = useState(initialMembersCount);
   const [isPending, startTransition] = useTransition();
 
-  // Obtener la lista de miembros y verificar si el usuario es miembro
   useEffect(() => {
     const fetchMembers = async () => {
       try {
-        const members = await fetchCommunityMembers(communityId); // Llamada a la nueva función
+        const members = await fetchCommunityMembers(communityId);
         const userIsMember: boolean = members.some((member: { id: string }) => member.id === userId);
         setIsMember(userIsMember);
-        setMembersCount(members.length); // Actualizar el número de miembros
+        setMembersCount(members.length);
       } catch (error) {
         console.error("Error fetching community members:", error);
       }
@@ -38,17 +37,11 @@ const CommunityMembershipButton = ({
     startTransition(async () => {
       try {
         if (isMember) {
-          const { membersCount: updatedCount } = await removeUserFromCommunity(
-            userId,
-            communityId
-          );
+          const { membersCount: updatedCount } = await removeUserFromCommunity(userId, communityId);
           setIsMember(false);
           setMembersCount(updatedCount);
         } else {
-          const { membersCount: updatedCount } = await addMemberToCommunity(
-            communityId,
-            userId
-          );
+          const { membersCount: updatedCount } = await addMemberToCommunity(communityId, userId);
           setIsMember(true);
           setMembersCount(updatedCount);
         }
@@ -59,20 +52,22 @@ const CommunityMembershipButton = ({
   };
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex flex-col items-center gap-2 mt-5 mr-3">
       <button
         onClick={handleMembershipToggle}
         disabled={isPending}
-        className={`px-4 py-2 rounded-full text-sm font-medium transition border ${isMember
+        className={`px-4 py-2 rounded-full text-sm font-medium transition border ${
+          isMember
             ? "bg-transparent text-red-400 border-red-400 hover:bg-red-500 hover:text-white"
             : "bg-primary text-white border-primary hover:opacity-90"
-          }`}
+        }`}
       >
-         {isPending ? "Cargando..." : isMember ? "Abandonar comunidad" : "Unirse a la comunidad"}
+        {isPending ? "Cargando..." : isMember ? "Abandonar comunidad" : "Unirse a la comunidad"}
       </button>
-      
+      <p className="text-sm text-gray-500">
+        {membersCount === 1 ? "1 miembro" : `${membersCount} miembros`}
+      </p>
     </div>
-
   );
 };
 

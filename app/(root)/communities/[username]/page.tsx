@@ -140,7 +140,7 @@ async function Page({ params, searchParams }: {
                 <Image src={tab.icon} alt={tab.label} width={24} height={24} className="object-contain" />
                 <p className="max-sm:hidden ml-2">{tab.label}</p>
                 <span className="ml-2 rounded-full bg-blue-600 px-2 py-0.5 text-xs text-white">
-                  {tab.label === "Threads" ? sortedPosts.length : community.members?.length}
+                  {tab.label === "Threads" ? sortedPosts.length : ""}
                 </span>
               </TabsTrigger>
 
