@@ -11,6 +11,7 @@ async function RightSidebar() {
   // Obtener todas las comunidades
   const { communities } = await fetchCommunities({});
 
+
   // Comunidades en las que el usuario ya es miembro
   const userCommunities = communities.filter((community: { members?: any[] }) =>
     community.members?.some((member: any) => member.id === user.id)
@@ -43,6 +44,18 @@ async function RightSidebar() {
     })
     .slice(0, 3);
 
+  // Si no hay comunidades sugeridas, seleccionar 2 o 3 al azar
+  const randomCommunities = exploreCommunities.length === 0
+    ? communities
+        .filter((community: { members?: any[]; createdBy?: string }) => {
+          const isMember = community.members?.some((member: any) => member.id === user.id);
+          const isCreator = community.createdBy === user.id;
+          return !isMember && !isCreator;
+        })
+        .sort(() => Math.random() - 0.5) // Mezclar aleatoriamente
+        .slice(0, 3)
+    : exploreCommunities;
+
   // Obtener usuarios sugeridos
   const { users } = await fetchUsers({
     userId: user.id,
@@ -55,11 +68,11 @@ async function RightSidebar() {
       {/* Comunidades sugeridas */}
       <div className="flex flex-1 flex-col justify-start">
         <h3 className="text-heading4-medium text-light-1">Comunidades sugeridas</h3>
-        {exploreCommunities.length === 0 ? (
+        {randomCommunities.length === 0 ? (
           <p className="text-light-3 mt-4">No hay comunidades sugeridas</p>
         ) : (
           <ul className="mt-4">
-            {exploreCommunities.map((community) => (
+            {randomCommunities.map((community) => (
               <li key={community.username} className="mb-3 flex items-center gap-3">
                 {/* Mostrar la imagen de la comunidad */}
                 <Image
@@ -92,7 +105,7 @@ async function RightSidebar() {
                   alt={user.name}
                   className="w-8 h-8 rounded-full"
                 />
-                <Link href={`/user/${user.id}`} className="text-light-2 hover:underline">
+                <Link href={`/profile/${user.id}`} className="text-light-2 hover:underline">
                   {user.name}
                 </Link>
               </li>

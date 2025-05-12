@@ -52,6 +52,7 @@ const CommunityMembershipButton = ({
         // Volver a obtener la lista de miembros para actualizar las imágenes
         const updatedMembers = await fetchCommunityMembers(communityId);
         setMemberImages(updatedMembers);
+        //window.location.reload(); // Recargar
       } catch (error) {
         console.error("Error updating membership:", error);
       }

@@ -162,7 +162,7 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
       center: userLocationState
         ? [userLocationState.longitude, userLocationState.latitude]
         : [0, 0],
-      zoom: 2,
+      zoom: 1,
     });
 
     return () => {
