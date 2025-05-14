@@ -315,7 +315,7 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
     if (filteredPosts.length > 0) {
       const avgLng = filteredPosts.reduce((sum, p) => sum + p.longitude, 0) / filteredPosts.length;
       const avgLat = filteredPosts.reduce((sum, p) => sum + p.latitude, 0) / filteredPosts.length;
-      mapRef.current.flyTo({ center: [avgLng, avgLat], zoom: 9 });
+      mapRef.current.flyTo({ center: [avgLng, avgLat], zoom: 7 });
     }
   }, [postLocations, mapMode, userLocationState]);
 
