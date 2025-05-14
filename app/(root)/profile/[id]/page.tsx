@@ -42,6 +42,9 @@ async function Page({ params }: { params: { id: string } }) {
   // Depurar las ubicaciones extraídas
   console.log("Post locations:", postLocations);
 
+
+  console.log("parametros al tab desde perfil", userInfo.id, user.id)
+
   return (
     <section>
       <ProfileHeader

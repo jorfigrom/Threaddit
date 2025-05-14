@@ -281,22 +281,28 @@ export async function fetchLikedThreads(userId: string) {
     // Devuelve un objeto con la estructura esperada
     return {
       name: "", // Si no necesitas un nombre específico, puedes dejarlo vacío
-      image: "", // Si no necesitas una imagen específica, puedes dejarlo vacío
       id: userId, // El ID del usuario cuyo perfil estás viendo
       threads: likedThreads.map((thread) => ({
         _id: thread._id.toString(),
         text: thread.text,
         parentId: thread.parentId,
         author: {
-          name: thread.author.name,
-          image: thread.author.image,
-          id: thread.author._id.toString(),
+          name: thread.author?.name || "Desconocido",
+          image: thread.author?.image || "",
+          id: thread.author?.id || "",
         },
-        community: thread.community, // Ahora incluirá los datos completos de la comunidad
-        location: thread.location,
-        imageThread: thread.imageThread,
+        community: thread.community
+          ? {
+              id: thread.community.id,
+              name: thread.community.name,
+              ...(thread.community.image && { image: thread.community.image }), // Solo incluir la imagen si existe
+              username: thread.community.username,
+            }
+          : { id: "", name: "", username: "" }, // Dejar en blanco si no hay comunidad
+        location: thread.location || {}, // Dejar en blanco si no hay localización
+        imageThread: thread.imageThread || "",
         createdAt: thread.createdAt,
-        children: thread.children,
+        children: thread.children || [],
         likes: thread.likes.map((like: string) => like.toString()), // Convertir likes a strings
       })),
     };

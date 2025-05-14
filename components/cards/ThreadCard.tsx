@@ -45,6 +45,8 @@ const ThreadCard = ({
   likes,
   location, // Recibir la ubicación
 }: Props) => {
+
+  console.log("info autor", author)
   return (
     <article className="w-full flex flex-col rounded-xl bg-dark-2 p-6">
       {/* Encabezado */}
@@ -67,7 +69,7 @@ const ThreadCard = ({
             </Link>
 
             {/* Comunidad */}
-            {community && typeof community !== "string" && (
+            {community && typeof community !== "string" && community.image && (
               <Link
                 href={`/communities/${community.username}`}
                 className="flex items-center gap-2 mt-1"
