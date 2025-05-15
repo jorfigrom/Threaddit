@@ -284,22 +284,66 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
       markerElement.appendChild(img);
 
       const popup = new mapboxgl.Popup().setHTML(`
-    <div style="max-width: 200px; background-color: white; padding: 10px; border-radius: 8px; border: 1px solid #ccc;">
-      <h3 style="font-size: 14px; font-weight: bold; margin-bottom: 8px; color: black;">${post.authorBio || "Anónimo"}</h3>
-      <p style="font-size: 12px; margin-bottom: 8px; color: black;">${post.address || "Sin dirección"}</p>
-      ${post.imageThread
-          ? `<img src="${post.imageThread}" alt="Imagen" style="width: 100%; border-radius: 8px; margin-bottom: 8px;" />`
+  <div style="
+    max-width: 220px;
+    background-color: #fff;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    font-family: sans-serif;
+    color: #333;
+  ">
+    <h3 style="
+      font-size: 14px;
+      font-weight: bold;
+      margin-bottom: 6px;
+      color: #111;
+    ">
+      ${post.authorBio || "Anónimo"}
+    </h3>
+    <p style="
+      font-size: 12px;
+      margin-bottom: 6px;
+      color: #555;
+    ">
+      ${post.address || "Sin dirección"}
+    </p>
+    ${post.imageThread
+          ? `<img src="${post.imageThread}" alt="Imagen" style="
+            width: 100%;
+            border-radius: 6px;
+            margin-bottom: 6px;
+          " />`
           : ""
         }
-      <p style="font-size: 12px; color: black;">Likes: ${post.likes?.length ?? 0}</p>
-      <button 
-        style="margin-top: 8px; padding: 5px 10px; font-size: 12px; background-color: #3887be; color: white; border: none; border-radius: 4px; cursor: pointer;"
-        onclick="window.showSimilarPosts('${post.id}')"
-      >
-        Ver similares
-      </button>
-    </div>
-  `);
+    <p style="
+      font-size: 12px;
+      margin-bottom: 6px;
+      color: #444;
+    ">
+      ❤️ ${post.likes?.length ?? 0}
+    </p>
+    <button 
+      style="
+        margin-top: 8px;
+        padding: 6px 12px;
+        font-size: 12px;
+        background-color: #3887be;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+      "
+      onmouseover="this.style.backgroundColor='#2c6e9f'"
+      onmouseout="this.style.backgroundColor='#3887be'"
+      onclick="window.showSimilarPosts('${post.id}')"
+    >
+      Ver similares
+    </button>
+  </div>
+`);
+
 
       const marker = new mapboxgl.Marker({
         element: markerElement, // Usar el elemento personalizado como marcador
@@ -365,57 +409,84 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
             position: "absolute",
             top: 0,
             left: 0,
-            width: "300px",
+            width: "320px",
             height: "100%",
             backgroundColor: "#fff",
             zIndex: 2,
             overflowY: "auto",
             borderRight: "1px solid #ccc",
-            padding: "10px",
+            padding: "16px",
+            boxShadow: "2px 0 6px rgba(0, 0, 0, 0.1)",
+            fontFamily: "sans-serif",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
           }}
         >
-          <button
-            onClick={() => setSimilarPosts(null)}
-            style={{
-              display: "block",
-              marginBottom: "10px",
-              padding: "5px 10px",
-              backgroundColor: "#f44336",
-              color: "#fff",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer",
-            }}
-          >
-            Cerrar
-          </button>
-          <h3 style={{ color: "#333" }}>Posts similares</h3>
-          <ul style={{ listStyle: "none", padding: 0 }}>
-            {similarPosts.map((post) => (
-              <li
-                key={post.id}
-                onClick={() => handleSimilarPostClick(post.id)}
-                style={{
-                  marginBottom: "10px",
-                  padding: "10px",
-                  border: "1px solid #ccc",
-                  borderRadius: "4px",
-                  backgroundColor: "#f9f9f9",
-                  color: "#333",
-                  cursor: "pointer",
-                }}
-              >
-                <h4 style={{ margin: "0 0 5px 0", fontSize: "14px", color: "#222" }}>
-                  {post.authorBio || "Anónimo"}
-                </h4>
-                <p style={{ margin: 0, fontSize: "12px", color: "#555" }}>
-                  {post.address || "Sin dirección"}
-                </p>
-              </li>
-            ))}
-          </ul>
+          <div>
+            <h3 style={{ color: "#222", marginBottom: "12px", fontSize: "16px" }}>
+              Posts similares
+            </h3>
+            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+              {similarPosts.map((post) => (
+                <li
+                  key={post.id}
+                  onClick={() => handleSimilarPostClick(post.id)}
+                  style={{
+                    marginBottom: "12px",
+                    padding: "12px",
+                    border: "1px solid #ddd",
+                    borderRadius: "6px",
+                    backgroundColor: "#fafafa",
+                    color: "#333",
+                    cursor: "pointer",
+                    transition: "background-color 0.2s ease",
+                  }}
+                  onMouseOver={(e) =>
+                    (e.currentTarget.style.backgroundColor = "#f0f0f0")
+                  }
+                  onMouseOut={(e) =>
+                    (e.currentTarget.style.backgroundColor = "#fafafa")
+                  }
+                >
+                  <h4
+                    style={{
+                      margin: "0 0 6px 0",
+                      fontSize: "14px",
+                      fontWeight: "bold",
+                      color: "#111",
+                    }}
+                  >
+                    {post.authorBio || "Anónimo"}
+                  </h4>
+                  <p style={{ margin: 0, fontSize: "12px", color: "#555" }}>
+                    {post.address || "Sin dirección"}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div style={{ textAlign: "right", marginTop: "16px" }}>
+            <button
+              onClick={() => setSimilarPosts(null)}
+              style={{
+                padding: "6px 12px",
+                backgroundColor: "#f44336",
+                color: "#fff",
+                border: "none",
+                borderRadius: "6px",
+                cursor: "pointer",
+                fontSize: "14px",
+              }}
+            >
+              ✖ Cerrar
+            </button>
+          </div>
         </div>
       )}
+
+
       <div ref={mapContainerRef} style={{ width: "100%", height: "100%" }} />
     </div>
   );
