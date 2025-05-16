@@ -6,14 +6,14 @@ import AccountProfile from "@/components/forms/AccountProfile";
 
 async function Page() {
   const user = await currentUser();
-  if (!user) return null; // to avoid typescript warnings
+  if (!user) return null; 
 
   const userInfo = await fetchUser(user.id);
   if (userInfo?.onboarded) redirect("/");
 
   const userData = {
     id: user?.id,
-    objectId: userInfo?._id?.toString() ?? "", // Convierte ObjectId a string
+    objectId: userInfo?._id?.toString() ?? "", // Convierte ObjectId a string para evitar error del lado del cliente
     username: userInfo?.username ?? user?.username,
     name: userInfo?.name ?? user?.firstName ?? "",
     bio: userInfo?.bio ?? "",

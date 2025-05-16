@@ -27,7 +27,7 @@ interface Props {
     latitude?: number;
     longitude?: number;
     placeName?: string;
-    address?: string; // Asegúrate de incluir la dirección
+    address?: string; 
   };
 }
 
@@ -43,7 +43,7 @@ const ThreadCard = ({
   comments,
   isComment,
   likes,
-  location, // Recibir la ubicación
+  location, 
 }: Props) => {
 
   console.log("info autor", author)

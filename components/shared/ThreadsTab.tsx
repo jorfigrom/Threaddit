@@ -43,6 +43,9 @@ interface Props {
   accountType: string;
 }
 
+//Ignoramos ambos errores, ya que no afectan el funcionamiento de la aplicacion. Errores de typescript
+
+
 async function ThreadsTab({ currentUserId, accountId, accountType }: Props) {
   let result: Result;
 

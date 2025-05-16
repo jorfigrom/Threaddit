@@ -37,6 +37,7 @@ function Comment({ threadId, currentUserImg, currentUserId }: Props) {
     });
   
     const onSubmit = async (values: z.infer<typeof CommentValidation>) => {
+      // Llamada crear comentario
       await addCommentToThread(
         threadId,
         values.thread,

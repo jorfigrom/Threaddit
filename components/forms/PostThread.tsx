@@ -72,7 +72,7 @@ function PostThread({ userId }: { userId: string }) {
             thread: "",
             accountId: userId,
             imageThread: "",
-            communityId: "", // Agregar communityId al formulario
+            communityId: "", 
             location: {
                 latitude: 0,
                 longitude: 0,
@@ -86,7 +86,7 @@ function PostThread({ userId }: { userId: string }) {
         await createThread({
             text: values.thread,
             author: userId,
-            communityId: values.communityId, // Incluir communityId en la creación del thread
+            communityId: values.communityId, 
             imageThread: values.imageThread,
             location: values.location,
             path: pathname,

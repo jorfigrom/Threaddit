@@ -11,6 +11,8 @@ async function Page({
 }: {
   searchParams: { [key: string]: string | undefined };
 }) {
+
+
   const user = await currentUser();
   if (!user) return null;
 
@@ -20,12 +22,13 @@ async function Page({
   // Obtener todas las comunidades
   const { communities }: { communities: { id: string; name: any; username: any; image: any; bio: any; createdBy?: string; members?: any[] }[] } = await fetchCommunities({});
 
-  // Filtrar comunidades
+  // Filtrar comunidades de las que el usuario es miembro
   const userCommunities = communities.filter(
       (community: { id: string; name: any; username: any; image: any; bio: any; createdBy?: string; members?: any[] }) =>
         community.createdBy === user.id || community.members?.some((member: any) => member.id === user.id)
   );
 
+  // Filtrar comunidades que el usuario no es miembro
   const exploreCommunities = communities.filter(
       (community: { id: string; name: any; username: any; image: any; bio: any; createdBy?: string; members?: any[] }) =>
         community.createdBy !== user.id && !community.members?.some((member: any) => member.id === user.id)

@@ -1,3 +1,8 @@
+/*
+Codigo de la documentacion de uploadthing
+*/
+
+
 import { createRouteHandler } from "uploadthing/next";
 
 import { ourFileRouter } from "./core";

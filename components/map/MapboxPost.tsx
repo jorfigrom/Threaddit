@@ -77,7 +77,7 @@ const MapboxMapaInteractivo: React.FC<MapboxMapaInteractivoProps> = ({
       mapRef.current?.flyTo({ center: [lng, lat], zoom: 14 });
     });
 
-    // Usuario hace click
+    // Seleccionar la ubicacion marcada
     mapRef.current.on("click", async (e) => {
       const { lng, lat } = e.lngLat;
 

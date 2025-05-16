@@ -2,13 +2,13 @@ import { currentUser } from "@clerk/nextjs/server";
 import { fetchCommunities } from "@/lib/actions/community.actions";
 import { fetchUsers } from "@/lib/actions/user.actions";
 import Link from "next/link";
-import Image from "next/image"; // Importar el componente Image de Next.js
+import Image from "next/image"; 
 
 async function RightSidebar() {
   const user = await currentUser();
   if (!user) return null;
 
-  // Obtener todas las comunidades
+  // todas las comunidades
   const { communities } = await fetchCommunities({});
 
 
@@ -27,7 +27,7 @@ async function RightSidebar() {
       self.indexOf(word) === index
     );
 
-  // Filtrar comunidades similares basadas en palabras clave
+  //  comunidades similares basadas en palabras clave
   const exploreCommunities = communities
     .filter((community: { name: string; createdBy?: string; members?: any[] }) => {
       const isMember = community.members?.some((member: any) => member.id === user.id);
@@ -44,7 +44,7 @@ async function RightSidebar() {
     })
     .slice(0, 3);
 
-  // Si no hay comunidades sugeridas, seleccionar 2 o 3 al azar
+  // seleccionar 2 o 3 al azar
   const randomCommunities = exploreCommunities.length === 0
     ? communities
         .filter((community: { members?: any[]; createdBy?: string }) => {
@@ -60,7 +60,7 @@ async function RightSidebar() {
   const { users } = await fetchUsers({
     userId: user.id,
     pageNumber: 1,
-    pageSize: 3, // Mostrar solo 3 usuarios
+    pageSize: 3, 
   });
 
   return (
@@ -76,7 +76,7 @@ async function RightSidebar() {
               <li key={community.username} className="mb-3 flex items-center gap-3">
                 {/* Mostrar la imagen de la comunidad */}
                 <Image
-                  src={community.image} // Asegúrate de que `community.image` contenga la URL de la imagen
+                  src={community.image} 
                   alt={community.name}
                   width={40}
                   height={40}

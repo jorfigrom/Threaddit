@@ -24,6 +24,7 @@ async function Page() {
             {activity.map((item, index) => (
               <Link
                 key={index}
+                // Si es respuesta, va al hilo padre; si es like, va al hilo correspondiente
                 href={
                   item.type === "reply"
                     ? `/thread/${"parentId" in item ? item.parentId : ""}`
@@ -34,6 +35,7 @@ async function Page() {
               >
                 <article className='activity-card'>
                   <Image
+                  // Muestra la imagen del autor si es respuesta, o del primer usuario que dio like si es like
                     src={
                       item.type === "reply"
                         ? "author" in item && item.author.image
@@ -56,7 +58,9 @@ async function Page() {
                       <>
                       A
                         <span className='mr-1 text-primary-500'>
-                          
+                          {/* Si solo una persona dio like, muestra su nombre.
+                              Si más de una, muestra el nombre del primero y cuántos más.
+                              Ejemplo: "Juan y 2 personas" */}
                           {"likedBy" in item && item.likedBy.length === 1
                             ? ` ${item.likedBy[0].name}`
                             : "likedBy" in item

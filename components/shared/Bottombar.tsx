@@ -21,7 +21,7 @@ function Bottombar() {
             <Link
               href={link.route}
               key={link.label}
-              className={`bottombar_link ${isActive && 'bg-[#3763be]'}`} //pagina activa color morado
+              className={`bottombar_link ${isActive && 'bg-[#3763be]'}`} //pagina activa color azul
             >
               <Image
                 src={link.imgURL}

@@ -47,6 +47,8 @@ const AccountProfile = ({ user, btnTitle }: Props) => {
 
   const [files, setFiles] = useState<File[]>([]);
 
+
+  //Validacion de zod
   const form = useForm<z.infer<typeof userValidation>>({
     resolver: zodResolver(userValidation),
     defaultValues: {
@@ -69,6 +71,8 @@ const AccountProfile = ({ user, btnTitle }: Props) => {
       }
     }
 
+
+    // Actualizar el usuario en la base de datos
     await updateUser({
       name: values.name,
       path: pathname,
@@ -103,6 +107,8 @@ const AccountProfile = ({ user, btnTitle }: Props) => {
               className="rounded-full object-cover"
             />
           )}
+
+          {/* Botón de carga de imagen de uploadthing */}
           <UploadButton<OurFileRouter, "imageUploader">
             endpoint="imageUploader"
             onClientUploadComplete={(res) => {

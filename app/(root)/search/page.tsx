@@ -30,8 +30,8 @@ async function Page({
   const filteredCommunities =
     filter === "all" || filter === "communities"
       ? communities.filter((community: { name: string }) =>
-          community.name.toLowerCase().includes(searchString)
-        )
+        community.name.toLowerCase().includes(searchString)
+      )
       : [];
 
   // Buscar posts relacionados
@@ -39,10 +39,10 @@ async function Page({
   const filteredPosts =
     filter === "all" || filter === "posts"
       ? posts.filter(
-          (post: { text: string; author: { name: string } }) =>
-            post.text.toLowerCase().includes(searchString) ||
-            post.author?.name.toLowerCase().includes(searchString)
-        )
+        (post: { text: string; author: { name: string } }) =>
+          post.text.toLowerCase().includes(searchString) ||
+          post.author?.name.toLowerCase().includes(searchString)
+      )
       : [];
 
   // Buscar usuarios relacionados

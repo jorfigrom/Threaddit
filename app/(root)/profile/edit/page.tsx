@@ -10,6 +10,8 @@ async function Page() {
 
   const userInfo = await fetchUser(user.id);
 
+  //Conjunto de datos que se envian al componente AccountProfile 
+
   const userData = {
     id: user?.id,
     objectId: userInfo?._id?.toString() ?? "", // Convierte ObjectId a string

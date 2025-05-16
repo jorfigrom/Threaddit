@@ -13,8 +13,7 @@ async function page({ params }: { params: { id: string } }) {
 
     const { id } = await params  //https://nextjs.org/docs/messages/sync-dynamic-apis
     /*
-    Si la advertencia ocurrió en el Servidor (por ejemplo, un controlador de ruta o un Componente del Servidor), 
-    debes await la API dinámica para acceder a sus propiedades..
+    Error de nextjs (solucion)
     */
 
 

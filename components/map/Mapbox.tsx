@@ -82,7 +82,7 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
       case "Popular":
         return [...postLocations].sort((a, b) => (b.likes?.length ?? 0) - (a.likes?.length ?? 0));
       default:
-        return postLocations; // "Explorar" y "Cerca de mí" muestran todos los posts
+        return postLocations; 
     }
   };
 
@@ -104,7 +104,7 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
     const words = new Set<string>();
     [...posts, target].forEach((p) => {
       text(p)
-        .replace(/[^\w\s]/g, "") // Elimina puntuación y caracteres especiales
+        .replace(/[^\w\s]/g, "") 
         .split(/\s+/)
         .forEach((word) => word && words.add(word));
     });
@@ -138,7 +138,7 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
     const targetVector = textToVector(targetText, vocabulary);
 
     return postLocations
-      .filter((p) => p.id !== post.id) // Se ignora el post original
+      .filter((p) => p.id !== post.id) // ignora el post original
       .map((p) => {
         const text = `${p.address || ""} ${p.authorBio || ""} ${p.placeName || ""}`;
         const vector = textToVector(text, vocabulary);
@@ -185,6 +185,7 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
             new mapboxgl.Marker({ color: "#800080" })
               .setLngLat([userCoords.longitude, userCoords.latitude])
               .setPopup(
+                //Ubicacion del usuario
                 new mapboxgl.Popup().setHTML(`
                   <div style="font-size: 12px; color: black;">
                     <strong>Tu ubicación</strong>
@@ -253,9 +254,9 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
           .forEach((post) => highlightedPosts.add(post.id));
       }
     } else if (mapMode === "Popular") {
-      // Resaltar los 3 posts con más likes que tengan >0 likes
+      // Resaltar los 3 posts con más likes y que tengan >0 likes
       const sortedByLikes = [...filteredPosts]
-        .filter((post) => (post.likes?.length ?? 0) > 0) // Filtrar posts con más de 0 likes
+        .filter((post) => (post.likes?.length ?? 0) > 0)
         .sort((a, b) => (b.likes?.length ?? 0) - (a.likes?.length ?? 0));
       sortedByLikes.slice(0, 3).forEach((post) => highlightedPosts.add(post.id));
     }
@@ -275,7 +276,7 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
 
       // Agregar la imagen del post al marcador
       const img = document.createElement("img");
-      img.src = post.imageThread || "https://via.placeholder.com/40"; // Imagen del post o un placeholder
+      img.src = post.imageThread || "https://via.placeholder.com/40"; 
       img.alt = "Post Image";
       img.style.width = "100%";
       img.style.height = "100%";
@@ -346,7 +347,7 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
 
 
       const marker = new mapboxgl.Marker({
-        element: markerElement, // Usar el elemento personalizado como marcador
+        element: markerElement, 
       })
         .setLngLat([post.longitude, post.latitude])
         .setPopup(popup)
@@ -364,7 +365,7 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
   }, [postLocations, mapMode, userLocationState]);
 
   const handleSimilarPostClick = (postId: string) => {
-    setSimilarPosts(null); // Cerrar el listado de posts similares
+    setSimilarPosts(null); 
 
     // Cerrar todos los popups abiertos
     markersRef.current.forEach(({ marker }) => marker.getPopup()?.remove());
@@ -372,7 +373,7 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
     // Buscar el marcador correspondiente al post seleccionado
     const markerData = markersRef.current.find((m) => m.postId === postId);
     if (markerData) {
-      markerData.marker.togglePopup(); // Abrir el popup del marcador seleccionado
+      markerData.marker.togglePopup(); // Abrir el popup
     }
   };
 

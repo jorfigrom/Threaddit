@@ -6,6 +6,8 @@ export default async function Home() {
   const result = await fetchPosts(1, 30);
   const user = await currentUser();
 
+  //Se muestran todos los post, sin importar la comunidad, ni los miembros
+
   return (
     <>
       <h1 className="head-text text-left">Inicio</h1>

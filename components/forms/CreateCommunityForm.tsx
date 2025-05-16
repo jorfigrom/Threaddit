@@ -43,7 +43,7 @@ const CreateCommunityForm = ({ userId }: CreateCommunityFormProps) => {
         },
     });
 
-
+    //El identificador de la comunidad se genera a partir del id del usuario y el número de comunidades que tiene
 
     const onSubmit = async (values: z.infer<typeof communityValidation>) => {
         try {

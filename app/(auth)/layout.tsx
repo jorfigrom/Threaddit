@@ -20,7 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     return (
       <ClerkProvider
         appearance={{
-          baseTheme: [shadesOfPurple],
+          baseTheme: [shadesOfPurple], // estilos de clerk
       }}
     >
         <html lang="en">

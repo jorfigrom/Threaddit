@@ -21,7 +21,7 @@ async function Page({ params }: { params: { id: string } }) {
   if (!userInfo?.onboarded) redirect("/onboarding");
 
   // Obtener todos los posts y filtrar los que pertenecen al usuario del perfil
-  const { posts } = await fetchPosts(1, 100); // Obtener hasta 100 posts (ajustar según sea necesario)
+  const { posts } = await fetchPosts(1, 100); // Obtener hasta 100 posts
   const userPosts = posts.filter((post: any) => post.author?.id === id);
 
   // Extraer ubicaciones de los posts del usuario
@@ -39,9 +39,8 @@ async function Page({ params }: { params: { id: string } }) {
       createdAt: post.createdAt || "",
     }));
 
-  // Depurar las ubicaciones extraídas
+  
   console.log("Post locations:", postLocations);
-
 
   console.log("parametros al tab desde perfil", userInfo.id, user.id)
 
@@ -62,6 +61,8 @@ async function Page({ params }: { params: { id: string } }) {
       </div>
 
       <div className="mt-9">
+
+        {/* Contenedor de las pestañas */}
         <Tabs defaultValue="threads" className="w-full">
           <TabsList className="tab">
             {profileTabs.map((tab) => (

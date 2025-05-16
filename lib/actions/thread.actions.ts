@@ -159,7 +159,6 @@ export async function addCommentToThread(
       parentId: threadId,
     });
 
-    // Guarda el comentario
     const savedCommentThread = await commentThread.save();
 
     // Agrega el comentario como hijo del hilo
@@ -253,7 +252,7 @@ export async function toggleLikeOnThread(threadId: string, userId: string) {
 
     console.log("Likes actualizados:", thread.likes);
 
-    return thread.likes; // Devuelve el array actualizado de likes
+    return thread.likes; // array actualizado de likes
   } catch (error: any) {
     console.error("Error al actualizar el like:", error);
     throw new Error("No se pudo actualizar el like");
@@ -272,15 +271,15 @@ export async function fetchLikedThreads(userId: string) {
         select: "_id id name image",
       })
       .populate({
-        path: "community", // Agregar populate para la comunidad
+        path: "community", 
         model: Community,
-        select: "_id id name image username", // Seleccionar los campos necesarios
+        select: "_id id name image username", 
       })
-      .sort({ createdAt: "desc" }); // Ordenar por fecha de creación
+      .sort({ createdAt: "desc" }); 
 
-    // Devuelve un objeto con la estructura esperada
+    // Construimos el objeto con la estructura esperada
     return {
-      name: "", // Si no necesitas un nombre específico, puedes dejarlo vacío
+      name: "", 
       id: userId, // El ID del usuario cuyo perfil estás viendo
       threads: likedThreads.map((thread) => ({
         _id: thread._id.toString(),
@@ -295,7 +294,7 @@ export async function fetchLikedThreads(userId: string) {
           ? {
               id: thread.community.id,
               name: thread.community.name,
-              ...(thread.community.image && { image: thread.community.image }), // Solo incluir la imagen si existe
+              ...(thread.community.image && { image: thread.community.image }), 
               username: thread.community.username,
             }
           : { id: "", name: "", username: "" }, // Dejar en blanco si no hay comunidad
@@ -319,17 +318,17 @@ export async function deleteThread(id: string, path: string): Promise<void> {
   try {
     connectToDB();
 
-    // Find the thread to be deleted (the main thread)
+    // Hilo padre
     const mainThread = await Thread.findById(id).populate("author community");
 
     if (!mainThread) {
       throw new Error("Thread not found");
     }
 
-    // Fetch all child threads and their descendants recursively
+    // Buscar recursivamente todos los hilos hijos
     const descendantThreads = await fetchAllChildThreads(id);
 
-    // Get all descendant thread IDs including the main thread ID and child thread IDs
+  
     const descendantThreadIds = [
       id,
       ...descendantThreads.map((thread) => thread._id),
@@ -338,28 +337,28 @@ export async function deleteThread(id: string, path: string): Promise<void> {
     // Extract the authorIds and communityIds to update User and Community models respectively
     const uniqueAuthorIds = new Set(
       [
-        ...descendantThreads.map((thread) => thread.author?._id?.toString()), // Use optional chaining to handle possible undefined values
+        ...descendantThreads.map((thread) => thread.author?._id?.toString()), 
         mainThread.author?._id?.toString(),
       ].filter((id) => id !== undefined)
     );
 
     const uniqueCommunityIds = new Set(
       [
-        ...descendantThreads.map((thread) => thread.community?._id?.toString()), // Use optional chaining to handle possible undefined values
+        ...descendantThreads.map((thread) => thread.community?._id?.toString()), 
         mainThread.community?._id?.toString(),
       ].filter((id) => id !== undefined)
     );
 
-    // Recursively delete child threads and their descendants
+    // Recursivamente eliminar todos los hilos hijos
     await Thread.deleteMany({ _id: { $in: descendantThreadIds } });
 
-    // Update User model
+
     await User.updateMany(
       { _id: { $in: Array.from(uniqueAuthorIds) } },
       { $pull: { threads: { $in: descendantThreadIds } } }
     );
 
-    // Update Community model
+
     await Community.updateMany(
       { _id: { $in: Array.from(uniqueCommunityIds) } },
       { $pull: { threads: { $in: descendantThreadIds } } }
@@ -406,7 +405,7 @@ export async function fetchPostsWithLocation(pageNumber = 1, pageSize = 20) {
     community: post.community,
     imageThread: post.imageThread,
     createdAt: post.createdAt,
-    location: post.location, // Incluye la ubicación completa
+    location: post.location, 
     likes: post.likes,
     comments: post.children,
   }));
