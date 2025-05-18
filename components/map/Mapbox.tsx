@@ -82,7 +82,7 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
       case "Popular":
         return [...postLocations].sort((a, b) => (b.likes?.length ?? 0) - (a.likes?.length ?? 0));
       default:
-        return postLocations; 
+        return postLocations;
     }
   };
 
@@ -104,7 +104,7 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
     const words = new Set<string>();
     [...posts, target].forEach((p) => {
       text(p)
-        .replace(/[^\w\s]/g, "") 
+        .replace(/[^\w\s]/g, "")
         .split(/\s+/)
         .forEach((word) => word && words.add(word));
     });
@@ -150,8 +150,6 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
       .slice(0, 5) // Se devuelven los 5 más parecidos
       .map((entry) => entry.post);
   };
-
-
 
   useEffect(() => {
     mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || "";
@@ -276,7 +274,7 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
 
       // Agregar la imagen del post al marcador
       const img = document.createElement("img");
-      img.src = post.imageThread || "https://via.placeholder.com/40"; 
+      img.src = post.imageThread || "https://via.placeholder.com/40";
       img.alt = "Post Image";
       img.style.width = "100%";
       img.style.height = "100%";
@@ -345,9 +343,8 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
   </div>
 `);
 
-
       const marker = new mapboxgl.Marker({
-        element: markerElement, 
+        element: markerElement,
       })
         .setLngLat([post.longitude, post.latitude])
         .setPopup(popup)
@@ -356,16 +353,30 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
       markersRef.current.push({ marker, postId: post.id });
     });
 
-    // Centrar el mapa si hay posts
+    // Centrar y ajustar el zoom del mapa según la dispersión de los posts
     if (filteredPosts.length > 0) {
-      const avgLng = filteredPosts.reduce((sum, p) => sum + p.longitude, 0) / filteredPosts.length;
-      const avgLat = filteredPosts.reduce((sum, p) => sum + p.latitude, 0) / filteredPosts.length;
-      mapRef.current.flyTo({ center: [avgLng, avgLat], zoom: 7 });
+      if (filteredPosts.length === 1) {
+        // Un solo post: centrar y hacer zoom alto
+        mapRef.current.flyTo({
+          center: [filteredPosts[0].longitude, filteredPosts[0].latitude],
+          zoom: 12,
+        });
+      } else {
+        // Varios posts: calcular bounds y ajustar zoom
+        const bounds = new mapboxgl.LngLatBounds();
+        filteredPosts.forEach((p) => bounds.extend([p.longitude, p.latitude]));
+
+        mapRef.current.fitBounds(bounds, {
+          padding: 100,
+          maxZoom: 7, // <-- Limita el zoom máximo para evitar ampliar demasiado
+          duration: 1000,
+        });
+      }
     }
   }, [postLocations, mapMode, userLocationState]);
 
   const handleSimilarPostClick = (postId: string) => {
-    setSimilarPosts(null); 
+    setSimilarPosts(null);
 
     // Cerrar todos los popups abiertos
     markersRef.current.forEach(({ marker }) => marker.getPopup()?.remove());
@@ -486,7 +497,6 @@ const MapboxMapaInteractivo: React.FC<Props> = ({ postLocations, userLocation })
           </div>
         </div>
       )}
-
 
       <div ref={mapContainerRef} style={{ width: "100%", height: "100%" }} />
     </div>
