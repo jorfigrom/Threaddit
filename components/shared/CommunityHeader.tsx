@@ -49,17 +49,44 @@ const CommunityHeader = ({
         </div>
 
         {communityId.includes(authUserId) ? (
-          <Link href={`/communities/${username}/edit`}>
-            <div className="flex cursor-pointer gap-3 rounded-lg bg-dark-3 px-4 py-2">
-              <Image
-                src="/assets/edit.svg"
-                alt="edit"
-                width={16}
-                height={16}
-              />
-              <p className="text-light-2 max-sm:hidden">Editar</p>
+          <div className="flex flex-col items-end gap-2 mt-5 mr-3">
+            <Link href={`/communities/${username}/edit`}>
+              <div className="flex cursor-pointer gap-3 rounded-lg bg-dark-3 px-4 py-2">
+                <Image
+                  src="/assets/edit.svg"
+                  alt="edit"
+                  width={16}
+                  height={16}
+                />
+                <p className="text-light-2 max-sm:hidden">Editar</p>
+              </div>
+            </Link>
+            {/* Mostrar miembros y sus fotos debajo del botón de editar */}
+            <div className="flex items-center gap-2 mt-2">
+              <p className="text-sm text-gray-500">
+                {membersWithImages.length === 1
+                  ? "1 miembro"
+                  : `${membersWithImages.length} miembros`}
+              </p>
+              <div className="flex items-center">
+                {membersWithImages.slice(0, 3).map((member, index) => (
+                  <Image
+                    key={member.id}
+                    src={member.image}
+                    alt={`user_${index}`}
+                    width={24}
+                    height={24}
+                    className={`${index !== 0 && "-ml-2"} rounded-full object-cover`}
+                  />
+                ))}
+                {membersWithImages.length > 3 && (
+                  <p className="ml-1 text-sm text-gray-500">
+                    +{membersWithImages.length - 3}
+                  </p>
+                )}
+              </div>
             </div>
-          </Link>
+          </div>
         ) : (
           <CommunityMembershipButton
             communityId={communityId}

@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { fetchUser } from "@/lib/actions/user.actions";
 import { fetchPosts } from "@/lib/actions/thread.actions";
+import CommunitiesTab from "@/components/shared/CommunitiesTab";
 
 async function Page({ params }: { params: { id: string } }) {
   const user = await currentUser();
@@ -105,6 +106,9 @@ async function Page({ params }: { params: { id: string } }) {
                   accountId={userInfo.id}
                   accountType="Likes"
                 />
+              )}
+              {tab.value === "communities" && (
+                <CommunitiesTab userId={userInfo.id} />
               )}
             </TabsContent>
           ))}

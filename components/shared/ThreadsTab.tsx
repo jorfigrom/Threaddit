@@ -52,6 +52,7 @@ async function ThreadsTab({ currentUserId, accountId, accountType }: Props) {
   if (accountType === "Likes") {
     // Obtener threads basados en "Likes"
     result = await fetchLikedThreads(accountId);
+    console.log("result likes", result);
 
     // Asegúrate de que todos los threads tengan las propiedades necesarias
     result.threads = result.threads.map((thread) => ({

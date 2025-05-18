@@ -264,6 +264,9 @@ export async function fetchLikedThreads(userId: string) {
   connectToDB();
 
   try {
+    // Obtener datos del usuario para incluir nombre e imagen
+    const user = await User.findOne({ id: userId });
+
     const likedThreads = await Thread.find({ likes: { $in: [userId] } })
       .populate({
         path: "author",
@@ -279,8 +282,9 @@ export async function fetchLikedThreads(userId: string) {
 
     // Construimos el objeto con la estructura esperada
     return {
-      name: "", 
-      id: userId, // El ID del usuario cuyo perfil estás viendo
+      name: user?.name || "", // Ahora incluye el nombre
+      image: user?.image || "", // Ahora incluye la imagen
+      id: userId,
       threads: likedThreads.map((thread) => ({
         _id: thread._id.toString(),
         text: thread.text,
@@ -297,12 +301,12 @@ export async function fetchLikedThreads(userId: string) {
               ...(thread.community.image && { image: thread.community.image }), 
               username: thread.community.username,
             }
-          : { id: "", name: "", username: "" }, // Dejar en blanco si no hay comunidad
-        location: thread.location || {}, // Dejar en blanco si no hay localización
+          : { id: "", name: "", username: "" },
+        location: thread.location || {},
         imageThread: thread.imageThread || "",
         createdAt: thread.createdAt,
         children: thread.children || [],
-        likes: thread.likes.map((like: string) => like.toString()), // Convertir likes a strings
+        likes: thread.likes.map((like: string) => like.toString()),
       })),
     };
   } catch (error: any) {
