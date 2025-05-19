@@ -29,17 +29,16 @@ async function Page() {
                   item.type === "reply"
                     ? `/thread/${"parentId" in item ? item.parentId : ""}`
                     : "threadId" in item
-                    ? `/thread/${item.threadId}`
-                    : ""
+                      ? `/thread/${item.threadId}`
+                      : ""
                 }
               >
                 <article className='activity-card'>
                   <Image
-                  // Muestra la imagen del autor si es respuesta, o del primer usuario que dio like si es like
                     src={
                       item.type === "reply"
-                        ? "author" in item && item.author.image
-                        : "likedBy" in item ? item.likedBy[0]?.image : ""
+                        ? ("author" in item && item.author?.image) || "/default-user.png"
+                        : ("likedBy" in item && item.likedBy[0]?.image) || "/default-user.png"
                     }
                     alt='user_logo'
                     width={20}
@@ -50,23 +49,20 @@ async function Page() {
                     {item.type === "reply" ? (
                       <>
                         <span className='mr-1 text-primary-500'>
-                          {"author" in item && item.author.name}
+                          {"author" in item && item.author?.name}
                         </span>{" "}
                         ha respondido a tu publicación
                       </>
                     ) : (
                       <>
-                      A
+                        A
                         <span className='mr-1 text-primary-500'>
-                          {/* Si solo una persona dio like, muestra su nombre.
-                              Si más de una, muestra el nombre del primero y cuántos más.
-                              Ejemplo: "Juan y 2 personas" */}
-                          {"likedBy" in item && item.likedBy.length === 1
+                          {"likedBy" in item && item.likedBy.length === 1 && item.likedBy[0]?.name
                             ? ` ${item.likedBy[0].name}`
-                            : "likedBy" in item
-                            ? ` ${item.likedBy[0].name} y ${item.likedBy.length - 1
-                            } persona${item.likedBy.length - 1 > 1 ? "s" : ""}`
-                            : ""}
+                            : "likedBy" in item && item.likedBy.length > 1 && item.likedBy[0]?.name
+                              ? ` ${item.likedBy[0].name} y ${item.likedBy.length - 1
+                              } persona${item.likedBy.length - 1 > 1 ? "s" : ""}`
+                              : ""}
                         </span>{" "}
                         les ha gustado tu publicación
                       </>
