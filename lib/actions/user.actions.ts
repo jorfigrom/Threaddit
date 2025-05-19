@@ -98,7 +98,6 @@ export async function fetchUserPosts(userId: string) {
   }
 }
 
-
 export async function fetchUsers({
   userId,
   searchString = "",
@@ -137,7 +136,6 @@ export async function fetchUsers({
     // orden
     const sortOptions = { createdAt: sortBy };
 
-
     const usersQuery = User.find(query)
       .sort(sortOptions)
       .skip(skipAmount)
@@ -148,7 +146,6 @@ export async function fetchUsers({
 
     const users = await usersQuery.exec();
 
-
     const isNext = totalUsersCount > skipAmount + users.length;
 
     return { users, isNext };
@@ -158,28 +155,33 @@ export async function fetchUsers({
   }
 }
 
-
 export async function getActivity(userId: string) {
   try {
     connectToDB();
 
     // Buscar todos los hilos creados por el usuario
     const userThreads = await Thread.find({ author: userId });
+    console.log("userThreads", userThreads);
 
     // Recopilar todos los IDs de los hilos secundarios (respuestas) desde el campo 'children' de cada hilo del usuario
     const childThreadIds = userThreads.reduce((acc, userThread) => {
       return acc.concat(userThread.children);
     }, []);
+    console.log("childThreadIds", childThreadIds);
 
     // Buscar y devolver los hilos secundarios (respuestas), excluyendo los creados por el mismo usuario
+    const userThreadIds = userThreads.map((t) => t._id);
+
+    // Buscar replies a los hilos del usuario
     const replies = await Thread.find({
-      _id: { $in: childThreadIds },
-      author: { $ne: userId }, // Excluir los hilos creados por el mismo usuario
+      parentId: { $in: userThreadIds },
+      
     }).populate({
       path: "author",
       model: User,
-      select: "name image", // Obtener solo el nombre e imagen del autor
+      select: "name image",
     });
+    console.log("replies", replies);
 
     // Buscar publicaciones del usuario que han recibido likes
     const likedThreads = await Thread.find({
