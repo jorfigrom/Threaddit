@@ -127,7 +127,10 @@ async function Page({
 
   return (
     <section>
-      <h1 className="head-text mb-10">Buscar</h1>
+      <div className="flex flex-col items-center">
+      <h1 className="head-text text-center w-full">Buscar</h1>
+      <div className="w-24 border-b-2 border-gray-300 mt-2 mb-7 "></div>
+      </div>
 
       <Searchbar routeType="search" />
 

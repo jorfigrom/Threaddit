@@ -38,7 +38,10 @@ async function Page({
     <>
       {/* Contenedor del título y el botón */}
       <div className="flex justify-between items-center">
-        <h1 className="head-text">Comunidades</h1>
+        <div className="flex flex-col items-center">
+      <h1 className="head-text text-center w-full">Comunidades</h1>
+      <div className="w-24 border-b-2 border-gray-300 mt-2 "></div>
+      </div>
   
         <Link href="/create-community">
           <div className="flex cursor-pointer gap-3 rounded-lg bg-dark-3 px-4 py-2">

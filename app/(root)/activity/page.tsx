@@ -16,7 +16,10 @@ async function Page() {
 
   return (
     <>
-      <h1 className='head-text'>Actividad</h1>
+      <div className="flex flex-col items-center">
+      <h1 className="head-text text-center w-full">Actividad</h1>
+      <div className="w-24 border-b-2 border-gray-300 mt-2 mb-2 "></div>
+      </div>
 
       <section className='mt-10 flex flex-col gap-5'>
         {activity.length > 0 ? (
