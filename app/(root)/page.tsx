@@ -9,8 +9,6 @@ export default async function Home() {
 
   //Se muestran todos los post, sin importar la comunidad, ni los miembros
 
-  // Extract locations from posts for the map toggle
-  // Extrae solo los campos necesarios y asegúrate de que sean objetos planos
   const postLocations = result.posts
     .filter((post) => post.location && post.location.latitude && post.location.longitude)
     .map((post) => ({
@@ -24,8 +22,6 @@ export default async function Home() {
         likes: post.likes,
         createdAt: post.createdAt,
     }));
-
-  console.log("-------------------", postLocations.map(loc => loc.authorBio))
 
   return (
   <>
@@ -48,8 +44,8 @@ export default async function Home() {
             parentId={null}
             content={post.text}
             author={post.author}
-            community={post.community}
             imageThread={post.imageThread}
+            community={post.community}
             createdAt={post.createdAt}
             comments={post.comments}
             likes={post.likes}

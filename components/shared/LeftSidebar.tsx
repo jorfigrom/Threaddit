@@ -12,7 +12,6 @@ function LeftSidebar() {
     const pathname = usePathname();
 
     const { userId } = useAuth();
-    //console.log(userId);
 
     return (
       <section className="custom-scrollbar leftsidebar">
@@ -25,15 +24,11 @@ function LeftSidebar() {
               link.route = `/profile/${userId}`;
             }
             
-            
-            
-
-
             return (
               <Link 
                 href={link.route}
                 key={link.label}
-                className={`leftsidebar_link ${isActive && 'bg-[#3763be]'}`} //pagina activa color morado
+                className={`leftsidebar_link ${isActive && 'bg-[#3763be]'}`} //pagina activa
               >
                 <Image 
                   src={link.imgURL}
@@ -50,7 +45,6 @@ function LeftSidebar() {
         <div className="mt-10 px-6">
         <SignedIn>
               <SignOutButton signOutOptions={{redirectUrl: '/sign-in'}}>
-              
                 <div className="flex cursor-pointed gap-4 p-4">
                   <Image src="/assets/logout.svg" 
                   alt="logout" 

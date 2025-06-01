@@ -143,7 +143,6 @@ export async function addCommentToThread(
   path: string
 ) {
   connectToDB();
-
   try {
     // Encuentra el thread original por su id
     const originalThread = await Thread.findById(threadId);
