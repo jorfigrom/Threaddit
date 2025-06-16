@@ -6,7 +6,7 @@ import AccountProfile from "@/components/forms/AccountProfile";
 
 async function Page() {
   const user = await currentUser();
-  if (!user) return null; // to avoid typescript warnings
+  if (!user) return null; // para evitar error de ts
 
   const userInfo = await fetchUser(user.id);
 

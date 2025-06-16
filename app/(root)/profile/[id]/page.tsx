@@ -56,14 +56,14 @@ async function Page({ params }: { params: { id: string } }) {
         bio={userInfo.bio}
       />
 
-      {/* Mapa con las ubicaciones de los posts del usuario */}
+      {/* Mapa */}
       <div className="mt-6 bg-blue-50">
         <CommunityMapToggle postLocations={postLocations} />
       </div>
 
       <div className="mt-9">
 
-        {/* Contenedor de las pestañas */}
+        {/* Contenedor tabs */}
         <Tabs defaultValue="threads" className="w-full">
           <TabsList className="tab">
             {profileTabs.map((tab) => (

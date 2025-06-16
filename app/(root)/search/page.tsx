@@ -134,7 +134,7 @@ async function Page({
 
       <Searchbar routeType="search" />
 
-      {/* Mapa con las ubicaciones de los posts */}
+      {/* Mapa  */}
       <div className="mt-6 bg-blue-50">
         <CommunityMapToggle postLocations={postLocations} />
       </div>

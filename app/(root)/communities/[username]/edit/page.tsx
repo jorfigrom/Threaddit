@@ -9,7 +9,7 @@ async function Page({ params }: { params: { username: string } }) {
     return <p>Comunidad no encontrada</p>;
   }
 
-  // Construir manualmente el objeto literal para asegurar un prototipo válido
+  // Construir manualmente el objeto literal para asegurar un estructura válida
   const fixedCommunity = {
     id: community?.id,
     name: community?.name,

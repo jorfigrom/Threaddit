@@ -75,7 +75,7 @@ const CreateCommunityForm = ({ userId }: CreateCommunityFormProps) => {
                 className="flex flex-col gap-6"
                 onSubmit={form.handleSubmit(onSubmit)}
             >
-                <h2 className="text-xl font-semibold">Crear Comunidad</h2>
+                
 
                 {form.formState.errors.root && (
                     <p className="text-red-500">{form.formState.errors.root.message}</p>
