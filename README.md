@@ -27,7 +27,7 @@ Cada comunidad cuenta con un **mapa interactivo** integrado que muestra de forma
   * Filtrado dinámico de lugares dentro del mapa de cada comunidad.
 * **Interacción Social Completa:**
   * Feed de publicaciones con soporte para imágenes y ubicaciones exactas.
-  * Sistema de *likes* y comentarios anidados/hilos de conversación.
+  * Sistema de likes y comentarios anidados/hilos de conversación.
   * Seguimiento bidireccional: seguir a usuarios específicos y/o a comunidades enteras.
 * **Perfiles y Ajustes:**
   * Perfil de usuario con historial de publicaciones y comunidades asociadas.
@@ -37,8 +37,8 @@ Cada comunidad cuenta con un **mapa interactivo** integrado que muestra de forma
 
 ## 🛠️ Stack Tecnológico
 
-* **Frontend:** React / Next.js, Tailwind CSS (o estilos modulares), Mapbox GL JS.
-* **Backend:** Node.js, Express / Next.js Server Actions & API Routes.
+* **Frontend:** React / Next.js, Tailwind CSS, Mapbox GL JS.
+* **Backend:** Node.js, Next.js Server Actions & API Routes.
 * **Base de Datos:** MongoDB con Mongoose (modelado relacional y geoespacial).
 * **Servicios e Integraciones:**
   * **Clerk:** Gestión de sesiones, autenticación segura y roles.
@@ -48,8 +48,6 @@ Cada comunidad cuenta con un **mapa interactivo** integrado que muestra de forma
 ---
 
 ## 📸 Capturas de Pantalla
-
-<!-- Sube las capturas de tu memoria a una carpeta /docs o /screenshots y enlázalas aquí -->
 
 | Mapa de Comunidad | Publicación y Detalle |
 | :---: | :---: |
@@ -63,6 +61,46 @@ Sigue estos pasos para ejecutar el proyecto en tu entorno local:
 
 ### 1. Clonar el repositorio
 
-```bash
-git clone [https://github.com/jorfigrom/Threaddit.git](https://github.com/jorfigrom/Threaddit.git)
+git clone https://github.com/jorfigrom/Threaddit.git
 cd Threaddit
+
+### 2. Instalar dependencias
+
+npm install
+
+### 3. Configurar variables de entorno
+
+Crea un archivo llamado .env o .env.local en la raíz del proyecto y añade las siguientes variables:
+
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
+CLERK_SECRET_KEY=sk_test_...
+
+MAPBOX_API_KEY=pk.eyJ1...
+
+UPLOADTHING_SECRET=sk_live_...
+UPLOADTHING_APP_ID=tu_app_id
+
+MONGODB_URL=mongodb+srv://usuario:password@cluster.mongodb.net/threaddit?retryWrites=true&w=majority
+
+> Nota: Para obtener estas credenciales necesitas registrarte y generar las API keys correspondientes en Clerk (https://clerk.com/), Mapbox (https://www.mapbox.com/), Uploadthing (https://uploadthing.com/) y crear una base de datos en MongoDB Atlas (https://www.mongodb.com/).
+
+### 4. Iniciar el servidor de desarrollo
+
+npm run dev
+
+Abre http://localhost:3000 en tu navegador para ver la aplicación en ejecución.
+
+---
+
+## 🎓 Contexto Académico
+
+Este proyecto fue desarrollado como **Trabajo de Fin de Grado (TFG)**, con el objetivo de demostrar competencias en:
+* Arquitectura fullstack con tecnologías modernas de JavaScript/TypeScript.
+* Manejo e integración de APIs de terceros (autenticación, mapas vectoriales y almacenamiento multimedia).
+* Modelado y persistencia de datos geoespaciales.
+
+---
+
+## 👤 Autor
+
+* **Jorge Figueroa Román** — [GitHub](https://github.com/jorfigrom)
