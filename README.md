@@ -103,4 +103,4 @@ Este proyecto fue desarrollado como **Trabajo de Fin de Grado (TFG)**, con el ob
 
 ## 👤 Autor
 
-* **Jorge Figueroa Román** — [GitHub](https://github.com/jorfigrom)
+* **Jorge Figueroa Romero** — [GitHub](https://github.com/jorfigrom)
